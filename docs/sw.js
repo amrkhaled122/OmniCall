@@ -1,12 +1,12 @@
 const CACHE_NAME = 'omnicall-v1';
 const STATIC_CACHE = [
     '/',
-    '/index.html',
-    '/styles.css',
-    '/app.js',
-    '/manifest.json',
-    '/icon-192.png',
-    '/icon-512.png'
+    '/OmniCall/index.html',
+    '/OmniCall/styles.css',
+    '/OmniCall/app.js',
+    '/OmniCall/manifest.json',
+    '/OmniCall/icon-192.png',
+    '/OmniCall/icon-512.png'
 ];
 
 // Install event - cache static assets
