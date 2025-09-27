@@ -1,6 +1,6 @@
 // Register service worker
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/OmniCall/sw.js')
+    navigator.serviceWorker.register('./sw.js', { scope: './' })
         .then(registration => {
             console.log('ServiceWorker registered successfully');
         })
