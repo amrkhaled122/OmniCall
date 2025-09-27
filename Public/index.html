@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniCall PWA</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="OmniCall">
+    <link rel="apple-touch-icon" href="icon-192.png">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to OmniCall PWA</h1>
+        <p>This is a simple PWA hosted on your local server.</p>
+        <button id="enableNotifications">Enable Notifications</button>
+        <div id="status">Status: Not Connected</div>
+        <div id="installPrompt" style="display: none;">
+            <p>For best experience, add this app to your home screen!</p>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html> 
