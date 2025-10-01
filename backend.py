@@ -15,6 +15,20 @@ PWA_URL = "https://amrkhaled122.github.io/OmniCall/"
 SERVICE_ACCOUNT_PATH = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "service-account.json")
 SCOPES = ["https://www.googleapis.com/auth/firebase.messaging"]
 
+
+def _load_credentials():
+    # Load the same service-account for both Firestore and FCM
+    return service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_PATH)
+
+def get_access_token():
+    creds = _load_credentials().with_scopes(SCOPES)
+    creds.refresh(Request())
+    return creds.token, creds
+
+def db_client(project_id: str):
+    creds = _load_credentials()
+    return firestore.Client(project=project_id, credentials=creds)
+
 def load_sa():
     if not os.path.exists(SERVICE_ACCOUNT_PATH):
         print(f"ERROR: Service account not found at {SERVICE_ACCOUNT_PATH}")
