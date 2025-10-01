@@ -30,7 +30,9 @@ const statusEl = () => document.getElementById("status");
 
 // Cookie utils (bridge Safari tab → installed PWA)
 function setCookie(name, value, maxAgeSeconds) {
-  document.cookie = `${name}=${encodeURIComponent(value)}; Max-Age=${maxAgeSeconds}; Path=/OmniCall/; Secure; SameSite=Lax`;
+  document.cookie = `${name}=${encodeURIComponent(
+    value
+  )}; Max-Age=${maxAgeSeconds}; Path=/OmniCall/; Secure; SameSite=Lax`;
 }
 function getCookie(name) {
   const m = document.cookie.match(new RegExp("(^|; )" + name + "=([^;]*)"));
@@ -184,7 +186,9 @@ async function enableNotificationsFlow(auto = false) {
       return;
     }
     if (isIOS && !isStandalone) {
-      alert("On iPhone, Add to Home Screen first, then open the app and try again.");
+      alert(
+        "On iPhone, Add to Home Screen first, then open the app and try again."
+      );
       return;
     }
 
@@ -204,9 +208,7 @@ async function enableNotificationsFlow(auto = false) {
       return;
     }
 
-    const token = await registerTokenForUser(userId);
-    const tokenEl = document.getElementById("token");
-    if (tokenEl) tokenEl.textContent = `FCM Token:\n${token}`;
+    await registerTokenForUser(userId);
     const st = statusEl();
     if (st) st.textContent = "Status: Paired & Notifications Enabled";
     alert("Paired and notifications enabled!");
@@ -216,21 +218,54 @@ async function enableNotificationsFlow(auto = false) {
   }
 }
 
+// --- Stats (read-only) ---
+function todayKey() {
+  // Use local date (Cairo for you) in YYYY-MM-DD
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+async function loadStats() {
+  try {
+    const db = firebase.firestore();
+    // live global stats
+    db.collection("stats")
+      .doc("global")
+      .onSnapshot((snap) => {
+        const data = snap.data() || {};
+        document.getElementById("statUsers").textContent =
+          data.totalUsers ?? 0;
+        document.getElementById("statSends").textContent =
+          data.totalSends ?? 0;
+      });
+
+    // today stats
+    db.collection("stats_daily")
+      .doc(todayKey())
+      .onSnapshot((snap) => {
+        const data = snap.data() || {};
+        document.getElementById("statUsersToday").textContent =
+          data.usersToday ?? 0;
+      });
+  } catch (e) {
+    console.warn("Failed to load stats:", e);
+  }
+}
+
 // --- UI wiring ---
 document.addEventListener("DOMContentLoaded", () => {
-  const copyBtn = document.getElementById("copyToken");
   const scanBtn = document.getElementById("scanQR");
   const enableBtn = document.getElementById("enableNotifications");
   const closeScan = document.getElementById("closeScan");
 
-  // auto-refresh token if already paired & granted
+  // auto: mark status if already paired & granted
   (async () => {
     try {
       const userId = getPairedUserId();
       if (userId && Notification.permission === "granted") {
-        const t = await registerTokenForUser(userId);
-        const tokenEl = document.getElementById("token");
-        if (tokenEl) tokenEl.textContent = `FCM Token:\n${t}`;
         const st = statusEl();
         if (st) st.textContent = "Status: Paired & Notifications Enabled";
       } else if (getPairedUserId()) {
@@ -238,10 +273,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (st) st.textContent = "Status: Paired (permission not granted yet)";
       }
     } catch (e) {
-      console.warn("Auto token refresh failed:", e);
+      console.warn("Init status failed:", e);
     }
   })();
 
+  // keep token fresh in background (no UI)
   document.addEventListener("visibilitychange", async () => {
     if (document.hidden) return;
     try {
@@ -254,16 +290,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // stats
+  loadStats();
+
+  // buttons
   enableBtn?.addEventListener("click", () => enableNotificationsFlow(false));
   scanBtn?.addEventListener("click", () => startQRScanner());
   closeScan?.addEventListener("click", () => stopQRScanner());
-
-  copyBtn?.addEventListener("click", async () => {
-    const tokenEl = document.getElementById("token");
-    const txt = (tokenEl && tokenEl.textContent) || "";
-    const tokenOnly = txt.replace(/^FCM Token:\s*/i, "").trim();
-    if (!tokenOnly) { alert("No token to copy yet."); return; }
-    try { await navigator.clipboard.writeText(tokenOnly); alert("Token copied!"); }
-    catch { alert("Copy failed. Select & copy manually."); }
-  });
 });

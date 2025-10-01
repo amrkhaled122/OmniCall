@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OmniCall </title>
+  <title>OmniCall</title>
 
   <!-- Icons / Manifest -->
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
@@ -24,7 +24,7 @@
     <header class="header">
       <div class="logo-wrap">
         <img src="icon-192.png" alt="OmniCall logo" class="logo" />
-        <h1>OmniCall </h1>
+        <h1>OmniCall</h1>
       </div>
       <p class="subtle">
         Get instant notifications when a match is found. Works on iOS (installed PWA) & Android.
@@ -34,7 +34,8 @@
     <section class="card">
       <h2>Enable Notifications</h2>
       <p>
-        <strong>iPhone:</strong> open from your <em>Home Screen</em> (Add to Home Screen first), then pair via QR and enable.<br/>
+        <strong>iPhone:</strong> open from your <em>Home Screen</em> (Add to Home Screen first),
+        then pair via QR and enable.<br />
         <strong>Android:</strong> you can enable directly here or install first.
       </p>
 
@@ -49,13 +50,26 @@
       </div>
     </section>
 
+    <!-- Stats -->
     <section class="card">
-      <h3>Device Token (for debugging)</h3>
-      <p class="subtle">Shown after you enable notifications.</p>
-      <pre id="token" class="token-box"></pre>
-      <button id="copyToken" class="btn-ghost">Copy Token</button>
+      <h2>Live Stats</h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-num" id="statUsers">0</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="statSends">0</div>
+          <div class="stat-label">Notifications Sent</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="statUsersToday">0</div>
+          <div class="stat-label">Users Registered Today</div>
+        </div>
+      </div>
     </section>
 
+    <!-- Support -->
     <section class="card support">
       <div class="support-media">
         <img src="support.png" alt="Dota 2 artwork" class="support-image" />
@@ -76,7 +90,8 @@
             <div class="support-text">
               <div class="support-label">Binance</div>
               <div class="support-detail">
-                Email/ID: <a href="mailto:amrkhaled272@gmail.com">amrkhaled272@gmail.com</a> ·
+                Email/ID:
+                <a href="mailto:amrkhaled272@gmail.com">amrkhaled272@gmail.com</a> ·
                 ID: <strong>753805136</strong>
               </div>
             </div>
@@ -91,7 +106,8 @@
             <div class="support-text">
               <div class="support-label">PayPal</div>
               <div class="support-detail">
-                Email: <a href="mailto:amrkhaled122@aucegypt.edu">amrkhaled122@aucegypt.edu</a>
+                Email:
+                <a href="mailto:amrkhaled122@aucegypt.edu">amrkhaled122@aucegypt.edu</a>
               </div>
             </div>
           </div>
