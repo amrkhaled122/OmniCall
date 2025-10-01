@@ -121,18 +121,39 @@ def send_to_token(project_id: str, access_token: str, token: str, message_body: 
     payload = {
         "message": {
             "token": token,
-            # ✅ Put custom payload here (string values)
+
+            # ✅ Data payload (your SW can read this via event.data.json())
             "data": {
                 "title": "OmniCall",
                 "message": message_body,
                 "url": PWA_URL
             },
-            # Optional WebPush extras (click → open link)
+
+            # ✅ Proper WebPush notification block (browsers can render directly)
             "webpush": {
-                "fcmOptions": { "link": PWA_URL }
+                "notification": {
+                    "title": "OmniCall",
+                    "body": message_body,
+                    "icon": "/OmniCall/icon-192.png",
+                    "badge": "/OmniCall/icon-192.png",
+                    "vibrate": [100, 50, 100],
+                    "requireInteraction": True,
+                    "actions": [
+                        {"action": "open", "title": "Open App"}
+                    ]
+                },
+                # Clicking notification should open your PWA
+                "fcmOptions": {"link": PWA_URL}
+            },
+
+            # (Optional) top-level notification for other platforms
+            "notification": {
+                "title": "OmniCall",
+                "body": message_body
             }
         }
     }
+
     resp = requests.post(
         fcm_url,
         headers={
@@ -143,6 +164,7 @@ def send_to_token(project_id: str, access_token: str, token: str, message_body: 
         timeout=10,
     )
     return (resp.ok, resp.text)
+
 
 def send_fixed_message(project_id: str, user_id: str) -> int:
     tokens = list_user_tokens(project_id, user_id)
