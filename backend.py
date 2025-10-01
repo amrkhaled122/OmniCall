@@ -116,20 +116,26 @@ def inc_stats(client: firestore.Client, users: int = 0, sends: int = 0, users_to
         )
 
 # -------- FCM Send --------
-def send_to_token(project_id: str, access_token: str, token: str, message_body: str) -> Tuple[bool, str]:
+def send_to_token(project_id: str, access_token: str, token: str, message_body: str):
     fcm_url = f"https://fcm.googleapis.com/v1/projects/{project_id}/messages:send"
     payload = {
         "message": {
             "token": token,
+            # ✅ Put your custom payload here (strings only)
+            "data": {
+                "title": "OmniCall",
+                "message": message_body,
+                "url": PWA_URL
+            },
+            # Optional: keep webpush for link behavior, but NO notification block
             "webpush": {
-                "data": {
-                    "title": "OmniCall",
-                    "message": message_body,
-                    "url": PWA_URL
+                "fcm_options": {
+                    "link": PWA_URL
                 }
             }
         }
     }
+
     resp = requests.post(
         fcm_url,
         headers={
@@ -140,6 +146,7 @@ def send_to_token(project_id: str, access_token: str, token: str, message_body: 
         timeout=10,
     )
     return (resp.ok, resp.text)
+
 
 def send_fixed_message(project_id: str, user_id: str) -> int:
     tokens = list_user_tokens(project_id, user_id)

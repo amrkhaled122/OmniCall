@@ -50,30 +50,43 @@ self.addEventListener('message', (event) => {
 });
 // Push event - handle incoming push notifications
 self.addEventListener('push', (event) => {
-    console.log('Push received:', event);
-    
-    const data = event.data.json();
-    const options = {
-        body: data.message,
-        icon: './icon-192.png',
-        badge: './icon-192.png',
-        vibrate: [100, 50, 100],
-        data: {
-            url: data.url || '/'
-        },
-        requireInteraction: true, // Keep notification visible until user interacts
-        actions: [
-            {
-                action: 'open',
-                title: 'Open App'
-            }
-        ]
-    };
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch (_) {
+    // fallback to text if needed
+    try { payload = { body: event.data.text() }; } catch (_) {}
+  }
 
-    event.waitUntil(
-        self.registration.showNotification(data.title, options)
-    );
+  const title =
+    payload.title ||
+    (payload.notification && payload.notification.title) ||
+    'OmniCall';
+
+  const body =
+    payload.message ||
+    payload.body ||
+    (payload.notification && payload.notification.body) ||
+    'Match found!! Hurry up and accept it!!';
+
+  const url =
+    payload.url ||
+    (payload.data && payload.data.url) ||
+    './';
+
+  const options = {
+    body,
+    icon: './icon-192.png',
+    badge: './icon-192.png',
+    vibrate: [100, 50, 100],
+    requireInteraction: true,
+    data: { url },
+    actions: [{ action: 'open', title: 'Open App' }],
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
 });
+
 // In notificationclick event, open base URL with repo path:
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
