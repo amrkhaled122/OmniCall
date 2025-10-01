@@ -206,3 +206,43 @@ h2, h3 {
   padding: 6px 4px 0;
   opacity: 0.95;
 }
+/* layout nicety for buttons */
+.btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* QR scanner overlay */
+.scanner.hidden { display: none; }
+.scanner {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 18, 0.86);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+}
+.scanner-inner {
+  width: min(92vw, 520px);
+  background: #0f1320;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+}
+#qrVideo {
+  width: 100%;
+  border-radius: 10px;
+  background: #000;
+}
+.scan-hint {
+  text-align: center;
+  color: #a9b3c7;
+  font-size: 0.95rem;
+}
+.scan-close {
+  justify-self: center;
+}

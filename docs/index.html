@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OmniCall PWA</title>
+  <title>OmniCall </title>
 
   <!-- Icons / Manifest -->
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
@@ -24,20 +24,25 @@
     <header class="header">
       <div class="logo-wrap">
         <img src="icon-192.png" alt="OmniCall logo" class="logo" />
-        <h1>OmniCall PWA</h1>
+        <h1>OmniCall </h1>
       </div>
       <p class="subtle">
-        Get instant notifications when a match is found. Works on iOS (as installed PWA) & Android.
+        Get instant notifications when a match is found. Works on iOS (installed PWA) & Android.
       </p>
     </header>
 
     <section class="card">
       <h2>Enable Notifications</h2>
       <p>
-        On iPhone, open this app from your <strong>Home Screen</strong> (Add to Home Screen first),
-        then tap the button below. On Android, you can enable directly here.
+        <strong>iPhone:</strong> open from your <em>Home Screen</em> (Add to Home Screen first), then pair via QR and enable.<br/>
+        <strong>Android:</strong> you can enable directly here or install first.
       </p>
-      <button id="enableNotifications" class="btn-primary">Enable Notifications</button>
+
+      <div class="btn-row">
+        <button id="scanQR" class="btn-ghost">Scan QR to Pair</button>
+        <button id="enableNotifications" class="btn-primary">Enable Notifications</button>
+      </div>
+
       <div id="status" class="status">Status: Not Connected</div>
       <div id="installPrompt" class="note" style="display:none;">
         For the best experience, add this app to your home screen.
@@ -53,17 +58,16 @@
 
     <section class="card support">
       <div class="support-media">
-        <img src="support.jpeg" alt="Dota 2 artwork" class="support-image" />
+        <img src="support.png" alt="Dota 2 artwork" class="support-image" />
       </div>
       <div class="support-content">
         <h2>Support the Creator</h2>
         <p class="subtle">
-          If this PWA helps you, you can support its development. Thank you! ❤️
+          If this App helps you, you can support its development. Thank you! ❤️
         </p>
 
         <div class="support-items">
           <div class="support-item">
-            <!-- Binance icon (inline SVG) -->
             <div class="support-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" class="svg-icon">
                 <path d="M12 2l3 3-3 3-3-3 3-3zm7 7l3 3-3 3-3-3 3-3zM5 9l3 3-3 3-3-3 3-3zm7 4l3 3-3 3-3-3 3-3z" />
@@ -72,14 +76,13 @@
             <div class="support-text">
               <div class="support-label">Binance</div>
               <div class="support-detail">
-                Email/ID: <a href="mailto:amrkhaled272@gmai.com">amrkhaled272@gmai.com</a> ·
+                Email/ID: <a href="mailto:amrkhaled272@gmail.com">amrkhaled272@gmail.com</a> ·
                 ID: <strong>753805136</strong>
               </div>
             </div>
           </div>
 
           <div class="support-item">
-            <!-- PayPal icon (inline SVG) -->
             <div class="support-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" class="svg-icon">
                 <path d="M7 20h3l.6-3H16a4 4 0 003.9-3.2l.5-2.6A3 3 0 0017.5 8H11l.3-1.5A2.5 2.5 0 009 4H6.5L5 12l-1 6h3z" />
@@ -94,9 +97,7 @@
           </div>
         </div>
 
-        <p class="tiny subtle">
-          Please copy carefully when sending. Much appreciated!
-        </p>
+        <p class="tiny subtle">Please copy carefully when sending. Much appreciated!</p>
       </div>
     </section>
 
@@ -105,14 +106,25 @@
     </footer>
   </main>
 
+  <!-- Scanner overlay -->
+  <div id="scanner" class="scanner hidden" aria-hidden="true">
+    <div class="scanner-inner">
+      <video id="qrVideo" playsinline></video>
+      <div class="scan-hint">Point your camera at the QR code from your PC</div>
+      <button id="closeScan" class="btn-ghost scan-close">Close</button>
+    </div>
+  </div>
+
   <!-- Firebase SDKs (compat) — must load BEFORE app.js -->
   <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-messaging-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore-compat.js"></script>
 
+  <!-- QR decoder (pure JS) -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
   <script>
-    // Footer year
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>
   <script src="app.js"></script>

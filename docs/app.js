@@ -26,7 +26,9 @@ const isStandalone =
   window.matchMedia("(display-mode: standalone)").matches ||
   window.navigator.standalone === true;
 
-// Cookie utils (so pairing survives Safari → A2HS)
+const statusEl = () => document.getElementById("status");
+
+// Cookie utils (bridge Safari tab → installed PWA)
 function setCookie(name, value, maxAgeSeconds) {
   document.cookie = `${name}=${encodeURIComponent(value)}; Max-Age=${maxAgeSeconds}; Path=/OmniCall/; Secure; SameSite=Lax`;
 }
@@ -35,7 +37,7 @@ function getCookie(name) {
   return m ? decodeURIComponent(m[2]) : null;
 }
 
-// Capture pairing code from URL (?pair=...) and persist it to LS + cookie
+// Persist pairing from URL (?pair=...)
 (function persistPairFromURL() {
   try {
     const params = new URLSearchParams(location.search);
@@ -43,9 +45,7 @@ function getCookie(name) {
     if (urlPair) {
       const clean = urlPair.trim();
       localStorage.setItem("omnicall_user", clean);
-      // 1 year cookie to bridge Safari ↔ installed PWA storage
       setCookie("omnicall_user", clean, 60 * 60 * 24 * 365);
-      // Optional: tidy the URL (keeps stored values)
       history.replaceState({}, "", "./");
       console.log("[pair] stored from URL:", clean);
     }
@@ -62,7 +62,7 @@ function getPairedUserId() {
   );
 }
 
-// Core: get FCM token and (if new/rotated) write it under /users/{userId}/tokens/{token}
+// Token registration
 async function registerTokenForUser(userId) {
   const registration = await navigator.serviceWorker.ready;
   const messaging = firebase.messaging();
@@ -97,25 +97,151 @@ async function registerTokenForUser(userId) {
   return token;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const enableBtn = document.getElementById("enableNotifications");
-  const tokenEl = document.getElementById("token");
-  const copyBtn = document.getElementById("copyToken");
+// --- QR Scanner logic (jsQR) ---
+let _videoStream = null;
+let _scanRAF = null;
 
-  // If already paired + granted, refresh token on load
+function extractUserIdFromQR(data) {
+  // Accept full URL with ?pair=... or a raw userId
+  try {
+    const u = new URL(data);
+    const p = u.searchParams.get("pair");
+    if (p) return p.trim();
+  } catch (_) {}
+  // fallback: allow typical id pattern
+  const m = String(data).trim().match(/^[a-z0-9-]{8,}$/i);
+  return m ? m[0] : null;
+}
+
+async function startQRScanner() {
+  const overlay = document.getElementById("scanner");
+  const video = document.getElementById("qrVideo");
+  overlay.classList.remove("hidden");
+  overlay.setAttribute("aria-hidden", "false");
+
+  try {
+    _videoStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } },
+      audio: false,
+    });
+  } catch (err) {
+    console.error("Camera access denied:", err);
+    alert("Camera permission is required to scan the QR. Please allow camera.");
+    overlay.classList.add("hidden");
+    overlay.setAttribute("aria-hidden", "true");
+    return;
+  }
+
+  video.srcObject = _videoStream;
+  await video.play();
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+  const tick = async () => {
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(img.data, canvas.width, canvas.height, {
+        inversionAttempts: "dontInvert",
+      });
+      if (code && code.data) {
+        const userId = extractUserIdFromQR(code.data);
+        if (userId) {
+          await stopQRScanner();
+          // Persist pairing and auto-enable notifications
+          localStorage.setItem("omnicall_user", userId);
+          setCookie("omnicall_user", userId, 60 * 60 * 24 * 365);
+          await enableNotificationsFlow(/* auto = */ true);
+          return;
+        }
+      }
+    }
+    _scanRAF = requestAnimationFrame(tick);
+  };
+  _scanRAF = requestAnimationFrame(tick);
+}
+
+async function stopQRScanner() {
+  const overlay = document.getElementById("scanner");
+  overlay.classList.add("hidden");
+  overlay.setAttribute("aria-hidden", "true");
+  if (_scanRAF) cancelAnimationFrame(_scanRAF);
+  _scanRAF = null;
+  if (_videoStream) {
+    _videoStream.getTracks().forEach((t) => t.stop());
+    _videoStream = null;
+  }
+}
+
+// --- Enable flow (manual button or after successful scan) ---
+async function enableNotificationsFlow(auto = false) {
+  try {
+    if (!("Notification" in window)) {
+      alert("This browser does not support notifications.");
+      return;
+    }
+    if (isIOS && !isStandalone) {
+      alert("On iPhone, Add to Home Screen first, then open the app and try again.");
+      return;
+    }
+
+    const userId = getPairedUserId();
+    if (!userId) {
+      // no pairing; if this was manual click, open the scanner
+      if (!auto) await startQRScanner();
+      return;
+    }
+
+    let permission = Notification.permission;
+    if (permission !== "granted") {
+      permission = await Notification.requestPermission();
+    }
+    if (permission !== "granted") {
+      alert("Notification permission denied.");
+      return;
+    }
+
+    const token = await registerTokenForUser(userId);
+    const tokenEl = document.getElementById("token");
+    if (tokenEl) tokenEl.textContent = `FCM Token:\n${token}`;
+    const st = statusEl();
+    if (st) st.textContent = "Status: Paired & Notifications Enabled";
+    alert("Paired and notifications enabled!");
+  } catch (err) {
+    console.error("Enable flow error:", err);
+    alert("Error enabling notifications. See console.");
+  }
+}
+
+// --- UI wiring ---
+document.addEventListener("DOMContentLoaded", () => {
+  const copyBtn = document.getElementById("copyToken");
+  const scanBtn = document.getElementById("scanQR");
+  const enableBtn = document.getElementById("enableNotifications");
+  const closeScan = document.getElementById("closeScan");
+
+  // auto-refresh token if already paired & granted
   (async () => {
     try {
       const userId = getPairedUserId();
       if (userId && Notification.permission === "granted") {
         const t = await registerTokenForUser(userId);
+        const tokenEl = document.getElementById("token");
         if (tokenEl) tokenEl.textContent = `FCM Token:\n${t}`;
+        const st = statusEl();
+        if (st) st.textContent = "Status: Paired & Notifications Enabled";
+      } else if (getPairedUserId()) {
+        const st = statusEl();
+        if (st) st.textContent = "Status: Paired (permission not granted yet)";
       }
     } catch (e) {
-      console.warn("Auto refresh token on load failed:", e);
+      console.warn("Auto token refresh failed:", e);
     }
   })();
 
-  // Also refresh when app returns to foreground
   document.addEventListener("visibilitychange", async () => {
     if (document.hidden) return;
     try {
@@ -128,59 +254,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  enableBtn.addEventListener("click", async () => {
-    try {
-      if (!("Notification" in window)) {
-        alert("This browser does not support notifications.");
-        return;
-      }
+  enableBtn?.addEventListener("click", () => enableNotificationsFlow(false));
+  scanBtn?.addEventListener("click", () => startQRScanner());
+  closeScan?.addEventListener("click", () => stopQRScanner());
 
-      // iOS must be installed as a PWA (A2HS) for web push
-      if (isIOS && !isStandalone) {
-        alert(
-          "On iPhone, first scan the QR from your PC, then Add to Home Screen from that page, open the app from your home screen, and try again."
-        );
-        return;
-      }
-
-      // Require pairing via QR — no typing fallback
-      const userId = getPairedUserId();
-      if (!userId) {
-        alert(
-          "This device isn’t paired yet.\nPlease scan the QR code shown by your PC/CLI to pair automatically, then try again."
-        );
-        return;
-      }
-
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        alert("Notification permission denied.");
-        return;
-      }
-
-      const token = await registerTokenForUser(userId);
-      if (tokenEl) tokenEl.textContent = `FCM Token:\n${token}`;
-      alert("Notifications enabled & paired!");
-    } catch (err) {
-      console.error("Error enabling notifications:", err);
-      alert("Error enabling notifications. See console.");
-    }
+  copyBtn?.addEventListener("click", async () => {
+    const tokenEl = document.getElementById("token");
+    const txt = (tokenEl && tokenEl.textContent) || "";
+    const tokenOnly = txt.replace(/^FCM Token:\s*/i, "").trim();
+    if (!tokenOnly) { alert("No token to copy yet."); return; }
+    try { await navigator.clipboard.writeText(tokenOnly); alert("Token copied!"); }
+    catch { alert("Copy failed. Select & copy manually."); }
   });
-
-  if (copyBtn) {
-    copyBtn.addEventListener("click", async () => {
-      const txt = (tokenEl && tokenEl.textContent) || "";
-      const tokenOnly = txt.replace(/^FCM Token:\s*/i, "").trim();
-      if (!tokenOnly) {
-        alert("No token to copy yet.");
-        return;
-      }
-      try {
-        await navigator.clipboard.writeText(tokenOnly);
-        alert("Token copied!");
-      } catch {
-        alert("Copy failed. Select & copy manually.");
-      }
-    });
-  }
 });
