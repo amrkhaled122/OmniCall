@@ -2,16 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OmniCall PWA</title>
 
   <!-- Icons / Manifest -->
-  <link rel="stylesheet" href="styles.css" />
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
   <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#000000" />
 
@@ -19,35 +16,105 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <meta name="apple-mobile-web-app-title" content="OmniCall" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
+
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>Welcome to OmniCall PWA</h1>
-    <p>This is a simple PWA hosted on GitHub Pages.</p>
+  <main class="container">
+    <header class="header">
+      <div class="logo-wrap">
+        <img src="icon-192.png" alt="OmniCall logo" class="logo" />
+        <h1>OmniCall PWA</h1>
+      </div>
+      <p class="subtle">
+        Get instant notifications when a match is found. Works on iOS (as installed PWA) & Android.
+      </p>
+    </header>
 
-    <button id="enableNotifications">Enable Notifications</button>
-    <div id="status">Status: Not Connected</div>
+    <section class="card">
+      <h2>Enable Notifications</h2>
+      <p>
+        On iPhone, open this app from your <strong>Home Screen</strong> (Add to Home Screen first),
+        then tap the button below. On Android, you can enable directly here.
+      </p>
+      <button id="enableNotifications" class="btn-primary">Enable Notifications</button>
+      <div id="status" class="status">Status: Not Connected</div>
+      <div id="installPrompt" class="note" style="display:none;">
+        For the best experience, add this app to your home screen.
+      </div>
+    </section>
 
-    <div id="installPrompt" style="display: none;">
-      <p>For best experience, add this app to your home screen!</p>
-    </div>
+    <section class="card">
+      <h3>Device Token (for debugging)</h3>
+      <p class="subtle">Shown after you enable notifications.</p>
+      <pre id="token" class="token-box"></pre>
+      <button id="copyToken" class="btn-ghost">Copy Token</button>
+    </section>
 
-    <!-- Token UI (so you can copy the device token to fcm_token.txt) -->
-    <div style="margin-top:16px; text-align:left;">
-      <strong>Device FCM Token</strong>
-      <pre id="token" style="word-wrap:break-word; white-space:pre-wrap; margin-top:8px;"></pre>
-      <button id="copyToken" style="margin-top:6px;">Copy Token</button>
-    </div>
-  </div>
+    <section class="card support">
+      <div class="support-media">
+        <img src="support.jpeg" alt="Dota 2 artwork" class="support-image" />
+      </div>
+      <div class="support-content">
+        <h2>Support the Creator</h2>
+        <p class="subtle">
+          If this PWA helps you, you can support its development. Thank you! ❤️
+        </p>
 
-  <!-- Firebase SDK (compat) via CDN — must load BEFORE app.js -->
+        <div class="support-items">
+          <div class="support-item">
+            <!-- Binance icon (inline SVG) -->
+            <div class="support-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" class="svg-icon">
+                <path d="M12 2l3 3-3 3-3-3 3-3zm7 7l3 3-3 3-3-3 3-3zM5 9l3 3-3 3-3-3 3-3zm7 4l3 3-3 3-3-3 3-3z" />
+              </svg>
+            </div>
+            <div class="support-text">
+              <div class="support-label">Binance</div>
+              <div class="support-detail">
+                Email/ID: <a href="mailto:amrkhaled272@gmai.com">amrkhaled272@gmai.com</a> ·
+                ID: <strong>753805136</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="support-item">
+            <!-- PayPal icon (inline SVG) -->
+            <div class="support-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" class="svg-icon">
+                <path d="M7 20h3l.6-3H16a4 4 0 003.9-3.2l.5-2.6A3 3 0 0017.5 8H11l.3-1.5A2.5 2.5 0 009 4H6.5L5 12l-1 6h3z" />
+              </svg>
+            </div>
+            <div class="support-text">
+              <div class="support-label">PayPal</div>
+              <div class="support-detail">
+                Email: <a href="mailto:amrkhaled122@aucegypt.edu">amrkhaled122@aucegypt.edu</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="tiny subtle">
+          Please copy carefully when sending. Much appreciated!
+        </p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>© <span id="year"></span> Amr Khaled Abdelbaky — All rights reserved.</span>
+    </footer>
+  </main>
+
+  <!-- Firebase SDKs (compat) — must load BEFORE app.js -->
   <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-messaging-compat.js"></script>
-  <!-- Your app code (initializes Firebase Messaging, registers SW, etc.) -->
-   <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js"></script>
-   <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore-compat.js"></script>
 
+  <script>
+    // Footer year
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
   <script src="app.js"></script>
 </body>
 </html>

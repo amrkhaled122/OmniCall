@@ -26,36 +26,43 @@ const isStandalone =
   window.matchMedia("(display-mode: standalone)").matches ||
   window.navigator.standalone === true;
 
-// Capture pairing code from URL and persist it (so A2HS keeps it)
+// Cookie utils (so pairing survives Safari → A2HS)
+function setCookie(name, value, maxAgeSeconds) {
+  document.cookie = `${name}=${encodeURIComponent(value)}; Max-Age=${maxAgeSeconds}; Path=/OmniCall/; Secure; SameSite=Lax`;
+}
+function getCookie(name) {
+  const m = document.cookie.match(new RegExp("(^|; )" + name + "=([^;]*)"));
+  return m ? decodeURIComponent(m[2]) : null;
+}
+
+// Capture pairing code from URL (?pair=...) and persist it to LS + cookie
 (function persistPairFromURL() {
   try {
     const params = new URLSearchParams(location.search);
     const urlPair = params.get("pair");
     if (urlPair) {
-      localStorage.setItem("omnicall_user", urlPair.trim());
-      // optional: clean the URL in-place (keeps localStorage value)
+      const clean = urlPair.trim();
+      localStorage.setItem("omnicall_user", clean);
+      // 1 year cookie to bridge Safari ↔ installed PWA storage
+      setCookie("omnicall_user", clean, 60 * 60 * 24 * 365);
+      // Optional: tidy the URL (keeps stored values)
       history.replaceState({}, "", "./");
+      console.log("[pair] stored from URL:", clean);
     }
   } catch (e) {
     console.warn("Could not parse pair param:", e);
   }
 })();
 
-// Get or prompt for the userId (pairing code)
-function resolveUserId() {
-  let userId = localStorage.getItem("omnicall_user");
-  if (!userId) {
-    userId = prompt(
-      "Enter your OmniCall pairing code (from your PC/CLI or QR):"
-    );
-    if (!userId) return null;
-    userId = userId.trim();
-    localStorage.setItem("omnicall_user", userId);
-  }
-  return userId;
+function getPairedUserId() {
+  return (
+    localStorage.getItem("omnicall_user") ||
+    getCookie("omnicall_user") ||
+    null
+  );
 }
 
-// Core: get FCM token and (if changed/new) write it under /users/{userId}/tokens/{token}
+// Core: get FCM token and (if new/rotated) write it under /users/{userId}/tokens/{token}
 async function registerTokenForUser(userId) {
   const registration = await navigator.serviceWorker.ready;
   const messaging = firebase.messaging();
@@ -87,21 +94,19 @@ async function registerTokenForUser(userId) {
       );
     localStorage.setItem("omnicall_last_token", token);
   }
-
   return token;
 }
 
-// --- UI wiring ---
 document.addEventListener("DOMContentLoaded", () => {
   const enableBtn = document.getElementById("enableNotifications");
   const tokenEl = document.getElementById("token");
   const copyBtn = document.getElementById("copyToken");
 
-  // If permission already granted and paired, refresh token on load
+  // If already paired + granted, refresh token on load
   (async () => {
     try {
-      const userId = localStorage.getItem("omnicall_user");
-      if (Notification.permission === "granted" && userId) {
+      const userId = getPairedUserId();
+      if (userId && Notification.permission === "granted") {
         const t = await registerTokenForUser(userId);
         if (tokenEl) tokenEl.textContent = `FCM Token:\n${t}`;
       }
@@ -114,8 +119,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("visibilitychange", async () => {
     if (document.hidden) return;
     try {
-      const userId = localStorage.getItem("omnicall_user");
-      if (Notification.permission === "granted" && userId) {
+      const userId = getPairedUserId();
+      if (userId && Notification.permission === "granted") {
         await registerTokenForUser(userId);
       }
     } catch (e) {
@@ -133,7 +138,16 @@ document.addEventListener("DOMContentLoaded", () => {
       // iOS must be installed as a PWA (A2HS) for web push
       if (isIOS && !isStandalone) {
         alert(
-          "On iPhone, please Add to Home Screen first, then open the app from your home screen and try again."
+          "On iPhone, first scan the QR from your PC, then Add to Home Screen from that page, open the app from your home screen, and try again."
+        );
+        return;
+      }
+
+      // Require pairing via QR — no typing fallback
+      const userId = getPairedUserId();
+      if (!userId) {
+        alert(
+          "This device isn’t paired yet.\nPlease scan the QR code shown by your PC/CLI to pair automatically, then try again."
         );
         return;
       }
@@ -141,12 +155,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         alert("Notification permission denied.");
-        return;
-      }
-
-      const userId = resolveUserId();
-      if (!userId) {
-        alert("Pairing code required.");
         return;
       }
 
@@ -170,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         await navigator.clipboard.writeText(tokenOnly);
         alert("Token copied!");
-      } catch (e) {
+      } catch {
         alert("Copy failed. Select & copy manually.");
       }
     });
