@@ -123,7 +123,7 @@ def send_to_token(project_id: str, access_token: str, token: str, message_body: 
             "token": token,
             # ✅ Put your custom payload here (strings only)
             "data": {
-                "title": "OmniCall",
+                "title": "Game Alert!",
                 "message": message_body,
                 "url": PWA_URL
             },

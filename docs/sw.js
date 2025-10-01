@@ -61,7 +61,7 @@ self.addEventListener('push', (event) => {
   const title =
     payload.title ||
     (payload.notification && payload.notification.title) ||
-    'OmniCall';
+    'Game Alert!';
 
   const body =
     payload.message ||
