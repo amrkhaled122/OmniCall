@@ -48,32 +48,35 @@ self.addEventListener('message', (event) => {
         });
     }
 });
-// Push event - handle incoming push notifications
-self.addEventListener('push', (event) => {
-    console.log('Push received:', event);
-    
-    const data = event.data.json();
-    const options = {
-        body: data.message,
-        icon: './icon-192.png',
-        badge: './icon-192.png',
-        vibrate: [100, 50, 100],
-        data: {
-            url: data.url || '/'
-        },
-        requireInteraction: true, // Keep notification visible until user interacts
-        actions: [
-            {
-                action: 'open',
-                title: 'Open App'
-            }
-        ]
-    };
 
-    event.waitUntil(
-        self.registration.showNotification(data.title, options)
-    );
+
+
+self.addEventListener('push', (event) => {
+  let payload = {};
+  try {
+    // event.data may be null if no data payload arrived
+    if (event.data) payload = event.data.json();
+  } catch (e) {
+    // ignore parse error and use defaults below
+  }
+
+  const title = payload.title || 'OmniCall';
+  const body  = payload.message || 'Match found !! Hurry up and accept on your PC !!';
+  const url   = payload.url || '/OmniCall/';
+
+  const options = {
+    body,
+    icon: './icon-192.png',
+    badge: './icon-192.png',
+    vibrate: [100, 50, 100],
+    data: { url },
+    requireInteraction: true,
+    actions: [{ action: 'open', title: 'Open App' }]
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
 });
+
 // In notificationclick event, open base URL with repo path:
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
