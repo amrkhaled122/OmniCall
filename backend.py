@@ -6,18 +6,29 @@ import requests
 import secrets
 import string
 from typing import List
+import qrcode
 
 from google.oauth2 import service_account
 from google.auth.transport.requests import Request
 from google.cloud import firestore
 
 PWA_URL = "https://amrkhaled122.github.io/OmniCall/"
-SERVICE_ACCOUNT_PATH = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "service-account.json")
+
+# If the env var is set, use it; otherwise look for a file next to backend.py
+SERVICE_ACCOUNT_PATH = os.getenv(
+    "GOOGLE_APPLICATION_CREDENTIALS",
+    os.path.join(os.path.dirname(__file__), "omnicall-service-account.json")
+)
+
 SCOPES = ["https://www.googleapis.com/auth/firebase.messaging"]
 
+def _ensure_sa_exists():
+    if not os.path.exists(SERVICE_ACCOUNT_PATH):
+        print(f"ERROR: Service account not found at {SERVICE_ACCOUNT_PATH}")
+        sys.exit(1)
 
 def _load_credentials():
-    # Load the same service-account for both Firestore and FCM
+    _ensure_sa_exists()
     return service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_PATH)
 
 def get_access_token():
@@ -30,24 +41,11 @@ def db_client(project_id: str):
     return firestore.Client(project=project_id, credentials=creds)
 
 def load_sa():
-    if not os.path.exists(SERVICE_ACCOUNT_PATH):
-        print(f"ERROR: Service account not found at {SERVICE_ACCOUNT_PATH}")
-        sys.exit(1)
+    _ensure_sa_exists()
     with open(SERVICE_ACCOUNT_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
-def get_access_token():
-    creds = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_PATH, scopes=SCOPES
-    )
-    creds.refresh(Request())
-    return creds.token, creds
-
-def db_client(project_id: str):
-    return firestore.Client(project=project_id)
-
 def gen_user_id(label: str | None = None) -> str:
-    # lowercase letters + digits, 16 chars
     salt = ''.join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(16))
     return (label.lower().replace(' ','-') + '-' if label else '') + salt
 
@@ -69,7 +67,8 @@ def list_user_tokens(project_id: str, user_id: str) -> List[str]:
     for doc in q.stream():
         data = doc.to_dict() or {}
         tok = data.get("token")
-        if tok: tokens.append(tok)
+        if tok:
+            tokens.append(tok)
     return tokens
 
 def send_to_token(project_id: str, access_token: str, token: str, message_body: str) -> tuple[bool, str]:
@@ -94,6 +93,17 @@ def send_to_token(project_id: str, access_token: str, token: str, message_body: 
     )
     return (resp.ok, resp.text)
 
+
+def print_pairing_qr(user_id: str):
+    url = f"https://amrkhaled122.github.io/OmniCall/?pair={user_id}"
+    print("\nScan this QR from your phone:")
+    qr = qrcode.QRCode(border=1)
+    qr.add_data(url)
+    qr.make(fit=True)
+    qr.print_ascii(tty=True)
+    print(url)  # also print the URL in case camera can’t read ASCII
+
+
 def main():
     parser = argparse.ArgumentParser(description="OmniCall push CLI (per-user)")
     parser.add_argument("--create-user", metavar="LABEL", help="Create a user and print pairing code (userId)")
@@ -109,9 +119,13 @@ def main():
 
     access_token, creds = get_access_token()
     print(f"[omnicall] project_id={project_id} sa_email={creds.service_account_email}")
+    print(f"[omnicall] using credentials file: {SERVICE_ACCOUNT_PATH}")
 
     if args.create_user:
         user_id = create_user(project_id, args.create_user)
+        # In your `if args.create_user:` block, after printing the code:
+        print_pairing_qr(user_id)
+        print("\nAdd to Home Screen from that page on iPhone, then open the app and tap Enable Notifications.")
         print("\n=== OmniCall Pairing Code ===")
         print(user_id)
         print("\nOn the phone, open the OmniCall PWA, tap Enable Notifications, and paste this code when prompted.")
@@ -132,7 +146,8 @@ def main():
     for tok in tokens:
         ok, text = send_to_token(project_id, access_token, tok, args.message)
         print(("✅" if ok else "❌"), "token..", tok[:12], "=>", "OK" if ok else text)
-        if ok: ok_count += 1
+        if ok:
+            ok_count += 1
     print(f"Done. Success: {ok_count}/{len(tokens)}")
 
 if __name__ == "__main__":
