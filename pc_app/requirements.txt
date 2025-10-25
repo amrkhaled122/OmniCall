@@ -1,0 +1,10 @@
+PyQt6
+opencv-python
+mss
+numpy
+requests
+qrcode
+pillow
+google-cloud-firestore
+google-auth
+google-auth-oauthlib
