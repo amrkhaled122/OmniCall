@@ -1,9 +1,6 @@
 """
 Secure Firebase Client - Uses Cloud Functions instead of direct Firebase access.
 No service account needed in the desktop app!
-
-This client calls Firebase Cloud Functions which handle all Firebase operations securely.
-The service account credentials stay on Google's servers, not in the desktop app.
 """
 
 from __future__ import annotations
@@ -13,13 +10,13 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
 
-# Firebase project configuration
+# Your Firebase project configuration
 FIREBASE_PROJECT_ID = "omnicall-d3630"
 FIREBASE_REGION = "us-central1"
 PWA_URL = "https://amrkhaled122.github.io/OmniCall/"
 DEFAULT_MESSAGE = "Match found !! Hurry up and accept on your PC !!"
 
-# Cloud Function URLs (callable functions)
+# Cloud Function URLs
 BASE_URL = f"https://{FIREBASE_REGION}-{FIREBASE_PROJECT_ID}.cloudfunctions.net"
 CREATE_USER_URL = f"{BASE_URL}/createUser"
 SEND_NOTIFICATION_URL = f"{BASE_URL}/sendNotification"
@@ -68,61 +65,40 @@ def _get_session() -> requests.Session:
 
 def _call_function(url: str, data: dict, timeout: int = 10) -> dict:
     """
-    Call a Firebase Cloud Function using the callable functions protocol.
-    
-    Cloud Functions created with `functions.https.onCall()` expect requests in this format:
-    POST body: {"data": {your_data_here}}
-    Response: {"result": {response_data}} or {"error": {error_details}}
+    Call a Firebase Cloud Function.
     
     Args:
-        url: The Cloud Function URL
-        data: The data to send (will be wrapped in {"data": ...})
+        url: The function URL
+        data: The data to send
         timeout: Request timeout in seconds
     
     Returns:
-        The result data from the Cloud Function
+        The response data
     
     Raises:
-        Exception: If the request fails or Cloud Function returns an error
+        Exception: If the request fails
     """
     session = _get_session()
     
     try:
-        # Wrap data in the format expected by callable Cloud Functions
-        payload = {"data": data}
-        
-        # Make the request
         response = session.post(
             url,
-            json=payload,
+            json={"data": data},
             headers={"Content-Type": "application/json"},
             timeout=timeout
         )
+        response.raise_for_status()
         
-        # Check HTTP status code
-        if response.status_code != 200:
-            error_text = response.text
-            raise Exception(f"HTTP {response.status_code}: {error_text}")
-        
-        # Parse JSON response
         result = response.json()
         
-        # Check if Cloud Function returned an error
+        # Check for Cloud Function errors
         if "error" in result:
-            error_info = result["error"]
-            error_code = error_info.get("status", "UNKNOWN")
-            error_message = error_info.get("message", "Unknown error")
-            raise Exception(f"Cloud Function error [{error_code}]: {error_message}")
+            raise Exception(f"Cloud Function error: {result['error'].get('message', 'Unknown error')}")
         
-        # Return the result data
         return result.get("result", {})
     
-    except requests.exceptions.Timeout:
-        raise Exception(f"Request timed out after {timeout} seconds")
-    except requests.exceptions.ConnectionError:
-        raise Exception("Connection error - check your internet connection")
     except requests.exceptions.RequestException as e:
-        raise Exception(f"Network error: {str(e)}")
+        raise Exception(f"Network error calling Cloud Function: {str(e)}")
 
 
 def create_user(label: str) -> tuple[str, str]:

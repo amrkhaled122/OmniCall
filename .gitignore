@@ -1,1 +1,111 @@
+# ===================================
+# SECURITY - NEVER COMMIT THESE
+# ===================================
 omnicall-service-account.json
+*.json.key
+*.pem
+*.key
+*.env
+.env
+.env.local
+
+# Firebase
+.firebaserc
+firebase-debug.log
+firebase-debug.*.log
+firebaserc
+
+# FCM Tokens (user-specific)
+fcm_token.txt
+
+# ===================================
+# PYTHON
+# ===================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+OmniCall/
+
+# PyInstaller
+*.manifest
+*.spec
+build/
+dist/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===================================
+# NODE.JS
+# ===================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ===================================
+# OPERATING SYSTEM
+# ===================================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+
+# ===================================
+# USER DATA & CONFIG
+# ===================================
+# User configuration files (store passwords, user IDs, etc.)
+config.json
+user_config.json
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ===================================
+# PROJECT SPECIFIC
+# ===================================
+# Old backup files (not needed for users)
+*_old_backup.py
+*_backup.py
+backend.py
+
+# Build artifacts
+*.exe
+*.app
+*.dmg
