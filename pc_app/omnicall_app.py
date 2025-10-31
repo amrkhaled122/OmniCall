@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -993,7 +993,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         # Hardcoded optimal values
         threshold = 0.8
-        debounce_seconds = 4
+        debounce_seconds = 4  # 4-second cooldown between notifications (keep alerting user)
         poll_ms = 250
 
         def on_match() -> bool:
@@ -1022,34 +1022,34 @@ class MainWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(int, int)
     def _handle_send_result(self, sent: int, total: int) -> None:
         if sent > 0:
-            self.statusBar().showMessage(f"Notification sent to {sent} device(s)", 4000)
-            
-            # Only increment match counter once per match (not per device)
-            # Check if last match was within 60 seconds (debounce)
+            # Detector sends notifications every 4 seconds (keep alerting)
+            # But only count as a NEW match if 60+ seconds since last match
             last_ts = self.cfg.get("last_match_ts")
-            now = datetime.now(datetime.UTC)
+            now = datetime.now(timezone.utc)
             should_increment = True
             
             if last_ts:
                 try:
                     last_dt = datetime.fromisoformat(last_ts.replace('Z', '+00:00'))
                     if hasattr(last_dt, 'tzinfo') and last_dt.tzinfo is None:
-                        # Legacy timestamp without timezone - assume UTC
-                        last_dt = last_dt.replace(tzinfo=datetime.UTC)
+                        last_dt = last_dt.replace(tzinfo=timezone.utc)
                     time_diff = (now - last_dt).total_seconds()
-                    if time_diff < 60:  # Less than 60 seconds since last match
+                    if time_diff < 60:  # Less than 60 seconds = same match
                         should_increment = False
                 except (ValueError, AttributeError):
-                    pass  # Invalid timestamp, allow increment
+                    pass
             
             if should_increment:
+                # NEW match - increment counter
                 self.cfg["total_matches"] = int(self.cfg.get("total_matches", 0)) + 1
                 self.cfg["last_match_ts"] = now.isoformat()
                 save_config(self.cfg)
                 self.last_match_label.setText(self._format_last_match())
                 self.total_match_label.setText(str(self.cfg["total_matches"]))
+                self.statusBar().showMessage(f"Match #{self.cfg['total_matches']}: Notification sent to {sent} device(s)", 4000)
             else:
-                self.statusBar().showMessage(f"Notification sent to {sent} device(s) (duplicate match ignored)", 4000)
+                # Same match - just re-alert, don't increment counter
+                self.statusBar().showMessage(f"Re-alert sent to {sent} device(s) (same match)", 3000)
         else:
             self.statusBar().showMessage("No tokens to send", 6000)
 
@@ -1093,7 +1093,7 @@ class MainWindow(QtWidgets.QMainWindow):
             dt = datetime.fromisoformat(ts.replace('Z', '+00:00'))
             # Handle legacy timestamps without timezone
             if hasattr(dt, 'tzinfo') and dt.tzinfo is None:
-                dt = dt.replace(tzinfo=datetime.UTC)
+                dt = dt.replace(tzinfo=timezone.utc)
         except ValueError:
             return ts
         return dt.strftime("%Y-%m-%d %H:%M:%S UTC")
@@ -1121,6 +1121,26 @@ class MainWindow(QtWidgets.QMainWindow):
         """)
 
         # Personal stats in same style as community stats
+        self.total_match_label = QtWidgets.QLabel(str(self.cfg.get("total_matches", 0)))
+        self.total_match_label.setStyleSheet("""
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: #4caf50;
+        """)
+        self.total_match_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        total_match_box = self._make_compact_stat_box(self.total_match_label, "Games Found")
+        
+        self.total_notifications_label = QtWidgets.QLabel("0")
+        self.total_notifications_label.setStyleSheet("""
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: #2196F3;
+        """)
+        self.total_notifications_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        notifications_box = self._make_compact_stat_box(self.total_notifications_label, "Notifications Sent")
+
         last_match_text = self._format_last_match()
         if last_match_text == "Never":
             last_match_text = "------------"
@@ -1128,28 +1148,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.last_match_label = QtWidgets.QLabel(last_match_text)
         self.last_match_label.setStyleSheet("""
             font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
-            color: #ff6b6b;
+            color: #a9b3c7;
         """)
         self.last_match_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.last_match_label.setWordWrap(True)
         last_match_box = self._make_compact_stat_box(self.last_match_label, "Last Match")
 
-        self.total_match_label = QtWidgets.QLabel(str(self.cfg.get("total_matches", 0)))
-        self.total_match_label.setStyleSheet("""
-            font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            color: #ff6b6b;
-        """)
-        self.total_match_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        total_match_box = self._make_compact_stat_box(self.total_match_label, "Games Found & Notified")
-
         personal_row = QtWidgets.QHBoxLayout()
         personal_row.setSpacing(10)
-        personal_row.addWidget(last_match_box)
         personal_row.addWidget(total_match_box)
+        personal_row.addWidget(notifications_box)
+        personal_row.addWidget(last_match_box)
 
         card_layout.addWidget(activity_heading)
         card_layout.addLayout(personal_row)
@@ -1202,7 +1213,7 @@ class MainWindow(QtWidgets.QMainWindow):
             color: #ff6b6b;
         """)
         self.global_sends.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        sends_box = self._make_compact_stat_box(self.global_sends, "Total Notifications")
+        sends_box = self._make_compact_stat_box(self.global_sends, "Total Matches")
 
         self.global_today = QtWidgets.QLabel("0")
         self.global_today.setStyleSheet("""
@@ -1263,8 +1274,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self._apply_stats(personal, global_stats)
 
     def _apply_stats(self, personal, global_stats: GlobalStats) -> None:
-        # Update personal stats (using the correct label names)
+        # Update personal stats
         self.total_match_label.setText(str(personal.matches_found))
+        self.total_notifications_label.setText(str(personal.notifications_sent))
         
         # Also update local config to stay in sync
         self.cfg["total_matches"] = personal.matches_found

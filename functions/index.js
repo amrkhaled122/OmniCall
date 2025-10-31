@@ -147,19 +147,46 @@ exports.sendNotification = functions.https.onCall(async (request, context) => {
       .map((r, idx) => (r.success ? null : tokens[idx]))
       .filter((t) => t !== null);
     
-    // Update global stats (total sends to all devices)
-    await incrementStats({ sends: successCount });
-    
-    // Update user's personal match count (increment by 1 per match, not per device)
+    // Update stats
     if (successCount > 0) {
-      await db.collection("users").doc(userId).set(
-        {
-          matchesFound: admin.firestore.FieldValue.increment(1),
-          notificationsSent: admin.firestore.FieldValue.increment(successCount),
-          lastMatchAt: admin.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true }
-      );
+      // Check if this is from detector (NEW match) or just a test/re-alert
+      const userDoc = await db.collection("users").doc(userId).get();
+      const userData = userDoc.data() || {};
+      const lastDetectorMatchAt = userData.lastDetectorMatchAt;
+      
+      // Check if message is from detector (contains "Match found")
+      const isFromDetector = notificationMessage.includes("Match found");
+      
+      let isNewMatch = false;
+      if (isFromDetector) {
+        // This is from the detector - check 60-second cooldown
+        isNewMatch = true;
+        if (lastDetectorMatchAt) {
+          const lastMatchTime = lastDetectorMatchAt.toDate ? lastDetectorMatchAt.toDate().getTime() : 0;
+          const now = Date.now();
+          const timeDiffSeconds = (now - lastMatchTime) / 1000;
+          
+          // If less than 60 seconds since last DETECTOR match, it's a re-alert (same game)
+          if (timeDiffSeconds < 60) {
+            isNewMatch = false;
+          }
+        }
+      }
+      
+      // ALWAYS increment notificationsSent (raw count: test + detector + re-alerts)
+      const updates = {
+        notificationsSent: admin.firestore.FieldValue.increment(successCount),
+      };
+      
+      // Only increment matchesFound if it's a NEW detector match (60+ seconds apart)
+      if (isNewMatch) {
+        updates.matchesFound = admin.firestore.FieldValue.increment(1);
+        updates.lastDetectorMatchAt = admin.firestore.FieldValue.serverTimestamp();
+        // Update global stats for new matches only
+        await incrementStats({ sends: 1 });
+      }
+      
+      await db.collection("users").doc(userId).set(updates, { merge: true });
     }
     
     return {
