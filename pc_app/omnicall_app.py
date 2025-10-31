@@ -1098,12 +1098,12 @@ class MainWindow(QtWidgets.QMainWindow):
         # Personal stats in same style as community stats
         last_match_text = self._format_last_match()
         if last_match_text == "Never":
-            last_match_text = "No matches yet"
+            last_match_text = "------------"
         
         self.last_match_label = QtWidgets.QLabel(last_match_text)
         self.last_match_label.setStyleSheet("""
             font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 700;
             color: #ff6b6b;
         """)

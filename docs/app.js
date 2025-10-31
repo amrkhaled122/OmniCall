@@ -22,6 +22,7 @@ const VAPID_KEY =
   "BP65XFXUvabvVTV6IRa9m-8JrssxnxFWJxDD3I8tvxpwu2xd7EJLEXV-vdBCpkeaWFV87TCJPMRombBcbBXLZ6s";
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 const isAndroid = /Android/.test(navigator.userAgent);
+const isDesktop = !isIOS && !isAndroid;
 const isStandalone =
   window.matchMedia("(display-mode: standalone)").matches ||
   window.navigator.standalone === true;
@@ -255,11 +256,54 @@ async function loadStats() {
   }
 }
 
+// --- Device-specific UI logic ---
+function showDeviceSpecificUI() {
+  const mobileControls = document.getElementById("mobile-controls");
+  const desktopView = document.getElementById("desktop-view");
+  const iosInstall = document.getElementById("ios-install");
+  const androidInstall = document.getElementById("android-install");
+
+  // Desktop: Only show stats and support
+  if (isDesktop) {
+    if (mobileControls) mobileControls.style.display = "none";
+    if (desktopView) desktopView.style.display = "block";
+    if (iosInstall) iosInstall.style.display = "none";
+    if (androidInstall) androidInstall.style.display = "none";
+    loadStats();
+    return;
+  }
+
+  // Mobile: Check if installed
+  if (isStandalone) {
+    // Installed PWA - show full mobile interface
+    if (mobileControls) mobileControls.style.display = "block";
+    if (desktopView) desktopView.style.display = "block";
+    if (iosInstall) iosInstall.style.display = "none";
+    if (androidInstall) androidInstall.style.display = "none";
+    loadStats();
+  } else {
+    // Not installed - show install instructions
+    if (mobileControls) mobileControls.style.display = "none";
+    if (desktopView) desktopView.style.display = "none";
+    
+    if (isIOS) {
+      if (iosInstall) iosInstall.style.display = "block";
+      if (androidInstall) androidInstall.style.display = "none";
+    } else if (isAndroid) {
+      if (androidInstall) androidInstall.style.display = "block";
+      if (iosInstall) iosInstall.style.display = "none";
+    }
+  }
+}
+
 // --- UI wiring ---
 document.addEventListener("DOMContentLoaded", () => {
   const scanBtn = document.getElementById("scanQR");
   const enableBtn = document.getElementById("enableNotifications");
   const closeScan = document.getElementById("closeScan");
+
+  // Show device-specific UI
+  showDeviceSpecificUI();
 
   // auto: mark status if already paired & granted
   (async () => {
@@ -289,9 +333,6 @@ document.addEventListener("DOMContentLoaded", () => {
       console.warn("Token refresh on foreground failed:", e);
     }
   });
-
-  // stats
-  loadStats();
 
   // buttons
   enableBtn?.addEventListener("click", () => enableNotificationsFlow(false));

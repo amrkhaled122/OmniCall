@@ -11,11 +11,24 @@ a = Analysis(
     pathex=['pc_app'],
     binaries=cv2_binaries,
     datas=[
+        # Template image for detection
         ('Accept.png', '.'),
-        ('omnicall-service-account.json', '.'),
+        
+        # App icons
         ('docs\\icon-192.png', 'docs'),
         ('docs\\icon-512.png', 'docs'),
         ('docs\\support_page.jpeg', 'docs'),
+        
+        # Tab icons
+        ('pc_app\\Track.png', 'pc_app'),
+        ('pc_app\\stats.png', 'pc_app'),
+        ('pc_app\\feedback.png', 'pc_app'),
+        ('pc_app\\support.png', 'pc_app'),
+        
+        # Support page images
+        ('pc_app\\support_page.jpeg', 'pc_app'),
+        ('pc_app\\paypal.png', 'pc_app'),
+        ('pc_app\\binance.png', 'pc_app'),
     ] + cv2_datas,
     hiddenimports=cv2_hiddenimports,
     hookspath=[],

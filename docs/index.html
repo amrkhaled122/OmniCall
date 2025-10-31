@@ -27,16 +27,103 @@
         <h1>OmniCall</h1>
       </div>
       <p class="subtle">
-        Get instant notifications when a match is found. Works on iOS (installed PWA) & Android.
+        Get instant notifications when a match is found. Works on iOS & Android.
       </p>
     </header>
 
-    <section class="card">
+    <!-- iOS Install Instructions -->
+    <section id="ios-install" class="card install-card" style="display:none;">
+      <h2>📱 Install OmniCall on iPhone</h2>
+      <p class="subtle">To receive notifications, you must first add this app to your Home Screen.</p>
+      
+      <div class="install-steps">
+        <div class="install-step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <strong>Tap the Share button</strong>
+            <p>Look for the <span style="font-size:1.3em;">⬆️</span> icon at the bottom of Safari</p>
+          </div>
+        </div>
+        
+        <div class="install-step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <strong>Select "Add to Home Screen"</strong>
+            <p>Scroll down and tap this option in the menu</p>
+          </div>
+        </div>
+        
+        <div class="install-step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <strong>Tap "Add"</strong>
+            <p>Confirm by tapping Add in the top-right corner</p>
+          </div>
+        </div>
+        
+        <div class="install-step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <strong>Open from Home Screen</strong>
+            <p>Find the OmniCall icon on your home screen and open it from there</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="install-note">
+        <strong>Note:</strong> After installing, open OmniCall from your Home Screen to enable notifications.
+      </div>
+    </section>
+
+    <!-- Android Install Instructions -->
+    <section id="android-install" class="card install-card" style="display:none;">
+      <h2>📱 Install OmniCall on Android</h2>
+      <p class="subtle">To receive notifications, you must first install this app to your device.</p>
+      
+      <div class="install-steps">
+        <div class="install-step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <strong>Tap the Menu button</strong>
+            <p>Look for the <span style="font-size:1.3em;">⋮</span> icon (three dots) at the top-right of Chrome</p>
+          </div>
+        </div>
+        
+        <div class="install-step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <strong>Select "Add to Home screen" or "Install app"</strong>
+            <p>You may see either option depending on your Chrome version</p>
+          </div>
+        </div>
+        
+        <div class="install-step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <strong>Tap "Add" or "Install"</strong>
+            <p>Confirm the installation when prompted</p>
+          </div>
+        </div>
+        
+        <div class="install-step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <strong>Open the installed app</strong>
+            <p>Find the OmniCall icon on your home screen or app drawer and open it</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="install-note">
+        <strong>Note:</strong> After installing, open OmniCall from your home screen to enable notifications.
+      </div>
+    </section>
+
+    <!-- Mobile Controls (shown only on installed PWA) -->
+    <section id="mobile-controls" class="card" style="display:none;">
       <h2>Enable Notifications</h2>
-      <p>
-        <strong>iPhone:</strong> open from your <em>Home Screen</em> (Add to Home Screen first),
-        then pair via QR and enable.<br />
-        <strong>Android:</strong> you can enable directly here or install first.
+      <p class="subtle">
+        Scan the QR code from your PC app to pair, then enable notifications to receive match alerts.
       </p>
 
       <div class="btn-row">
@@ -45,32 +132,31 @@
       </div>
 
       <div id="status" class="status">Status: Not Connected</div>
-      <div id="installPrompt" class="note" style="display:none;">
-        For the best experience, add this app to your home screen.
-      </div>
     </section>
 
-    <!-- Stats -->
-    <section class="card">
-      <h2>Live Stats</h2>
-      <div class="stats-grid">
-        <div class="stat-box">
-          <div class="stat-num" id="statUsers">0</div>
-          <div class="stat-label">Total Users</div>
+    <!-- Stats and Support (Desktop + Installed Mobile) -->
+    <div id="desktop-view" style="display:none;">
+      <!-- Stats -->
+      <section class="card">
+        <h2>Live Stats</h2>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-num" id="statUsers">0</div>
+            <div class="stat-label">Total Users</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="statSends">0</div>
+            <div class="stat-label">Notifications Sent</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="statUsersToday">0</div>
+            <div class="stat-label">Users Registered Today</div>
+          </div>
         </div>
-        <div class="stat-box">
-          <div class="stat-num" id="statSends">0</div>
-          <div class="stat-label">Notifications Sent</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-num" id="statUsersToday">0</div>
-          <div class="stat-label">Users Registered Today</div>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Support -->
-    <section class="card support">
+      <!-- Support -->
+      <section class="card support">
       <div class="support-media">
         <img src="support_page.jpeg" alt="Dota 2 artwork" class="support-image" />
       </div>
@@ -115,7 +201,8 @@
 
         <p class="tiny subtle">Please copy carefully when sending. Much appreciated!</p>
       </div>
-    </section>
+      </section>
+    </div>
 
     <footer class="footer">
       <span>© <span id="year"></span> Amr Khaled Abdelbaky — All rights reserved.</span>
