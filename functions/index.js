@@ -147,8 +147,20 @@ exports.sendNotification = functions.https.onCall(async (request, context) => {
       .map((r, idx) => (r.success ? null : tokens[idx]))
       .filter((t) => t !== null);
     
-    // Update stats
-    await incrementStats({ sends: 1 });
+    // Update global stats (total sends to all devices)
+    await incrementStats({ sends: successCount });
+    
+    // Update user's personal match count (increment by 1 per match, not per device)
+    if (successCount > 0) {
+      await db.collection("users").doc(userId).set(
+        {
+          matchesFound: admin.firestore.FieldValue.increment(1),
+          notificationsSent: admin.firestore.FieldValue.increment(successCount),
+          lastMatchAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+    }
     
     return {
       success: true,
