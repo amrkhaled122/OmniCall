@@ -260,6 +260,7 @@ async function loadStats() {
 function showDeviceSpecificUI() {
   const mobileControls = document.getElementById("mobile-controls");
   const desktopView = document.getElementById("desktop-view");
+  const desktopMessage = document.getElementById("desktop-message");
   const iosInstall = document.getElementById("ios-install");
   const androidInstall = document.getElementById("android-install");
   const headerSubtitle = document.getElementById("header-subtitle");
@@ -269,6 +270,7 @@ function showDeviceSpecificUI() {
     if (headerSubtitle) {
       headerSubtitle.textContent = "View live stats and support the creator.";
     }
+    if (desktopMessage) desktopMessage.style.display = "block";
     if (mobileControls) mobileControls.style.display = "none";
     if (desktopView) desktopView.style.display = "block";
     if (iosInstall) iosInstall.style.display = "none";
@@ -283,6 +285,7 @@ function showDeviceSpecificUI() {
     if (headerSubtitle) {
       headerSubtitle.textContent = "Get instant notifications when a match is found.";
     }
+    if (desktopMessage) desktopMessage.style.display = "none";
     if (mobileControls) mobileControls.style.display = "block";
     if (desktopView) desktopView.style.display = "block";
     if (iosInstall) iosInstall.style.display = "none";
@@ -293,6 +296,7 @@ function showDeviceSpecificUI() {
     if (headerSubtitle) {
       headerSubtitle.textContent = "Install the app to receive notifications on your phone.";
     }
+    if (desktopMessage) desktopMessage.style.display = "none";
     if (mobileControls) mobileControls.style.display = "none";
     if (desktopView) desktopView.style.display = "none";
     

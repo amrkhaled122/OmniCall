@@ -132,6 +132,16 @@ h2, h3 { margin: 0 0 8px; font-weight: 650; }
   width: 40px; height: 40px; border-radius: 10px; background: var(--muted);
   display: grid; place-items: center;
 }
+.support-icon-img {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: grid; place-items: center;
+  overflow: hidden;
+}
+.support-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .svg-icon { width: 22px; height: 22px; fill: #ffd369; }
 .support-text .support-label { font-weight: 700; letter-spacing: 0.2px; }
 .support-detail a { color: #79b8ff; text-decoration: none; }
