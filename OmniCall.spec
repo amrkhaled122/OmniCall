@@ -29,6 +29,9 @@ a = Analysis(
         ('pc_app\\support_page.jpeg', 'pc_app'),
         ('pc_app\\paypal.png', 'pc_app'),
         ('pc_app\\binance.png', 'pc_app'),
+        
+        # Feedback thank you icon
+        ('pc_app\\thanks.png', 'pc_app'),
     ] + cv2_datas,
     hiddenimports=cv2_hiddenimports,
     hookspath=[],

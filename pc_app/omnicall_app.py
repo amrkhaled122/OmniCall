@@ -1241,6 +1241,13 @@ class MainWindow(QtWidgets.QMainWindow):
         # Update personal stats (using the correct label names)
         self.total_match_label.setText(str(personal.matches_found))
         
+        # Also update local config to stay in sync
+        self.cfg["total_matches"] = personal.matches_found
+        save_config(self.cfg)
+        
+        # Update last match timestamp display
+        self.last_match_label.setText(self._format_last_match())
+        
         # Update global stats  
         self.global_users.setText(str(global_stats.total_users))
         self.global_sends.setText(str(global_stats.total_sends))
@@ -1318,7 +1325,21 @@ class MainWindow(QtWidgets.QMainWindow):
         self.feedback_edit.clear()
         self.feedback_status.setText("Thanks! Feedback sent.")
         _apply_property(self.feedback_status, "variant", "success")
-        QtWidgets.QMessageBox.information(self, "Feedback sent", "Thanks for sharing your feedback with OmniCall!")
+        
+        # Show thank you message with custom icon
+        msg_box = QtWidgets.QMessageBox(self)
+        msg_box.setWindowTitle("Feedback sent")
+        msg_box.setText("Thanks for sharing your feedback with OmniCall!")
+        msg_box.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
+        
+        # Try to load thanks.png icon
+        thanks_icon = _load_tab_icon("thanks.png")
+        if not thanks_icon.isNull():
+            msg_box.setIconPixmap(thanks_icon.pixmap(64, 64))
+        else:
+            msg_box.setIcon(QtWidgets.QMessageBox.Icon.Information)
+        
+        msg_box.exec()
         self._update_feedback_counter()
 
     def _update_feedback_counter(self) -> None:
