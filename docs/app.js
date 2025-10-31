@@ -262,9 +262,13 @@ function showDeviceSpecificUI() {
   const desktopView = document.getElementById("desktop-view");
   const iosInstall = document.getElementById("ios-install");
   const androidInstall = document.getElementById("android-install");
+  const headerSubtitle = document.getElementById("header-subtitle");
 
-  // Desktop: Only show stats and support
+  // Desktop: Only show stats and support (no pairing/notifications)
   if (isDesktop) {
+    if (headerSubtitle) {
+      headerSubtitle.textContent = "View live stats and support the creator.";
+    }
     if (mobileControls) mobileControls.style.display = "none";
     if (desktopView) desktopView.style.display = "block";
     if (iosInstall) iosInstall.style.display = "none";
@@ -276,6 +280,9 @@ function showDeviceSpecificUI() {
   // Mobile: Check if installed
   if (isStandalone) {
     // Installed PWA - show full mobile interface
+    if (headerSubtitle) {
+      headerSubtitle.textContent = "Get instant notifications when a match is found.";
+    }
     if (mobileControls) mobileControls.style.display = "block";
     if (desktopView) desktopView.style.display = "block";
     if (iosInstall) iosInstall.style.display = "none";
@@ -283,6 +290,9 @@ function showDeviceSpecificUI() {
     loadStats();
   } else {
     // Not installed - show install instructions
+    if (headerSubtitle) {
+      headerSubtitle.textContent = "Install the app to receive notifications on your phone.";
+    }
     if (mobileControls) mobileControls.style.display = "none";
     if (desktopView) desktopView.style.display = "none";
     
