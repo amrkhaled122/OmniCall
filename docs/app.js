@@ -220,36 +220,20 @@ async function enableNotificationsFlow(auto = false) {
 }
 
 // --- Stats (read-only) ---
-function todayKey() {
-  // Use local date (Cairo for you) in YYYY-MM-DD
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
 async function loadStats() {
   try {
     const db = firebase.firestore();
-    // live global stats
+    // Community stats from global collection
     db.collection("stats")
       .doc("global")
       .onSnapshot((snap) => {
         const data = snap.data() || {};
         document.getElementById("statUsers").textContent =
           data.totalUsers ?? 0;
-        document.getElementById("statSends").textContent =
-          data.totalSends ?? 0;
-      });
-
-    // today stats
-    db.collection("stats_daily")
-      .doc(todayKey())
-      .onSnapshot((snap) => {
-        const data = snap.data() || {};
-        document.getElementById("statUsersToday").textContent =
-          data.usersToday ?? 0;
+        document.getElementById("statMatches").textContent =
+          data.totalSends ?? 0;  // totalSends = Total Matches
+        document.getElementById("statNotifications").textContent =
+          data.usersToday ?? 0;  // usersToday = Total Notifications Sent
       });
   } catch (e) {
     console.warn("Failed to load stats:", e);

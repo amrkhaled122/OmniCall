@@ -465,7 +465,7 @@ class RegistrationDialog(QtWidgets.QDialog):
         if not APP_ICON.isNull():
             self.setWindowIcon(APP_ICON)
         self.setModal(True)
-        self.resize(540, 560)
+        self.setFixedSize(840, 560)  # Match main window size
 
         self.display_name = ""
         self.user_id = ""
@@ -482,20 +482,75 @@ class RegistrationDialog(QtWidgets.QDialog):
         self.finish_btn = self.buttons.addButton("Finish", QtWidgets.QDialogButtonBox.ButtonRole.AcceptRole)
         self.cancel_btn = self.buttons.addButton(QtWidgets.QDialogButtonBox.StandardButton.Cancel)
         self.finish_btn.setEnabled(False)
+        self.finish_btn.hide()  # Hide finish button initially
         self.buttons.accepted.connect(self.accept)
         self.buttons.rejected.connect(self.reject)
 
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.setContentsMargins(24, 24, 24, 18)
+        # Main layout with same styling as MainWindow
+        main_widget = QtWidgets.QWidget()
+        main_widget.setObjectName("MainSurface")
+        layout = QtWidgets.QVBoxLayout(main_widget)
+        layout.setContentsMargins(24, 18, 24, 18)
         layout.setSpacing(16)
 
+        # Add hero card at top (same as main window)
+        hero_frame = QtWidgets.QFrame()
+        hero_frame.setObjectName("HeroCard")
+        hero_layout = QtWidgets.QHBoxLayout(hero_frame)
+        hero_layout.setContentsMargins(20, 16, 20, 16)
+        hero_layout.setSpacing(14)
+
+        # Icon
+        icon_label = QtWidgets.QLabel()
+        icon_label.setFixedSize(60, 60)
+        icon_pixmap = APP_ICON.pixmap(56, 56)
+        if icon_pixmap.isNull():
+            icon_pixmap = QtGui.QPixmap(56, 56)
+            icon_pixmap.fill(QtGui.QColor("#4caf50"))
+        icon_label.setPixmap(icon_pixmap)
+        icon_label.setScaledContents(True)
+
+        # Title text
+        text_layout = QtWidgets.QVBoxLayout()
+        text_layout.setSpacing(4)
+        title = QtWidgets.QLabel(APP_NAME)
+        _apply_property(title, "role", "heroTitle")
+        tagline = QtWidgets.QLabel("Accept-button tracker with instant push alerts to your phone.")
+        tagline.setWordWrap(True)
+        _apply_property(tagline, "variant", "subtle")
+        text_layout.addWidget(title)
+        text_layout.addWidget(tagline)
+
+        hero_layout.addWidget(icon_label)
+        hero_layout.addWidget(QtWidgets.QLabel())  # Spacer
+        hero_layout.addLayout(text_layout)
+        hero_layout.addStretch(1)
+
+        layout.addWidget(hero_frame)
+
+        # Content card
         card = _create_card()
         card.layout().addWidget(self.stack)
         layout.addWidget(card)
         layout.addWidget(self.buttons)
 
+        # Set main widget as dialog's layout
+        dialog_layout = QtWidgets.QVBoxLayout(self)
+        dialog_layout.setContentsMargins(0, 0, 0, 0)
+        dialog_layout.addWidget(main_widget)
+
         _style_button(self.finish_btn, "primary")
         _style_button(self.cancel_btn, "outline")
+
+    def showEvent(self, event: QtGui.QShowEvent) -> None:
+        """Center the dialog on screen when shown."""
+        super().showEvent(event)
+        screen = QtWidgets.QApplication.primaryScreen()
+        if screen:
+            screen_geometry = screen.availableGeometry()
+            x = (screen_geometry.width() - self.width()) // 2
+            y = (screen_geometry.height() - self.height()) // 2
+            self.move(x, y)
 
     def _build_intro(self) -> QtWidgets.QWidget:
         w = QtWidgets.QWidget()
@@ -506,7 +561,10 @@ class RegistrationDialog(QtWidgets.QDialog):
         title = QtWidgets.QLabel("<h2>Register this PC</h2>")
         _apply_property(title, "role", "heading")
         subtitle = QtWidgets.QLabel(
-            "Enter a friendly device name. We will generate a secure pairing code, show a QR to scan on your phone, and keep the unique bits hidden."
+            "<b>1.</b> Enter a friendly device name<br/>"
+            "<b>2.</b> We will generate a secure pairing code<br/>"
+            "<b>3.</b> Scan the QR code with your phone<br/>"
+            "<b>4.</b> Install the PWA and enable notifications"
         )
         subtitle.setWordWrap(True)
         _apply_property(subtitle, "variant", "subtle")
@@ -531,54 +589,79 @@ class RegistrationDialog(QtWidgets.QDialog):
         return w
     def _build_qr_step(self) -> QtWidgets.QWidget:
         w = QtWidgets.QWidget()
-        layout = QtWidgets.QVBoxLayout(w)
-        layout.setSpacing(12)
-        layout.setContentsMargins(4, 4, 4, 4)
+        main_layout = QtWidgets.QVBoxLayout(w)
+        main_layout.setSpacing(8)
+        main_layout.setContentsMargins(4, 4, 4, 4)
 
+        # Welcome heading
         self.hello_label = QtWidgets.QLabel()
         self.hello_label.setWordWrap(True)
         _apply_property(self.hello_label, "role", "heading")
+        main_layout.addWidget(self.hello_label)
 
-        self.qr_label = QtWidgets.QLabel()
-        self.qr_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.qr_label.setMinimumSize(260, 260)
+        # Content row: Instructions on left, QR on right
+        content_layout = QtWidgets.QHBoxLayout()
+        content_layout.setSpacing(20)
 
-        self.link_field = QtWidgets.QLineEdit()
-        self.link_field.setReadOnly(True)
+        # Left side: Instructions and test button
+        left_layout = QtWidgets.QVBoxLayout()
+        left_layout.setSpacing(12)
 
-        copy_btn = QtWidgets.QPushButton("Copy Link")
-        copy_btn.clicked.connect(self._copy_link)
-        _style_button(copy_btn, "outline")
+        instructions = QtWidgets.QLabel(
+            "<b>Setup Steps:</b><br/><br/>"
+            "1. Scan the QR code with your phone<br/>"
+            "2. Install the PWA (Add to Home Screen)<br/>"
+            "3. Tap Enable Notifications in the PWA<br/>"
+            "4. Send a test notification below<br/>"
+            "5. Click Finish after you receive it on the phone"
+        )
+        instructions.setWordWrap(True)
+        _apply_property(instructions, "variant", "subtle")
+        left_layout.addWidget(instructions)
+
+        left_layout.addStretch(1)
+
+        self.test_status = QtWidgets.QLabel()
+        self.test_status.setWordWrap(True)
+        self.test_status.setMinimumHeight(40)
+        _apply_property(self.test_status, "variant", "subtle")
+        left_layout.addWidget(self.test_status)
 
         self.test_btn = QtWidgets.QPushButton("Send Test Notification")
         self.test_btn.clicked.connect(self._send_test)
         _style_button(self.test_btn, "primary")
+        self.test_btn.setMinimumHeight(44)
+        left_layout.addWidget(self.test_btn)
 
-        self.test_status = QtWidgets.QLabel()
-        self.test_status.setWordWrap(True)
-        _apply_property(self.test_status, "variant", "subtle")
+        content_layout.addLayout(left_layout, stretch=1)
 
-        self.confirm_btn = QtWidgets.QPushButton("I received the notification")
-        self.confirm_btn.clicked.connect(self._confirm_test)
-        self.confirm_btn.setEnabled(False)
-        _style_button(self.confirm_btn, "accent")
+        # Right side: QR code frame aligned with steps
+        qr_frame = QtWidgets.QFrame()
+        qr_frame.setFixedSize(188, 188)
+        qr_frame.setStyleSheet("""
+            QFrame {
+                background: transparent;
+                border: 2px solid rgba(76, 175, 80, 0.4);
+                border-radius: 16px;
+            }
+        """)
+        qr_frame_layout = QtWidgets.QVBoxLayout(qr_frame)
+        qr_frame_layout.setContentsMargins(2, 2, 2, 2)
+        qr_frame_layout.setSpacing(0)
 
-        instructions = QtWidgets.QLabel(
-            "1. Scan the QR with your phone.\n2. Install the PWA (Add to Home Screen).\n3. Tap Enable Notifications in the PWA."
-        )
-        instructions.setWordWrap(True)
-        _apply_property(instructions, "variant", "subtle")
+        self.qr_label = QtWidgets.QLabel()
+        self.qr_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.qr_label.setFixedSize(184, 184)
+        self.qr_label.setStyleSheet("""
+            QLabel {
+                background: white;
+                border-radius: 8px;
+            }
+        """)
+        qr_frame_layout.addWidget(self.qr_label)
+        content_layout.addWidget(qr_frame, alignment=QtCore.Qt.AlignmentFlag.AlignTop)
 
-        layout.addWidget(self.hello_label)
-        layout.addWidget(self.qr_label, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(QtWidgets.QLabel("Pairing link"))
-        layout.addWidget(self.link_field)
-        layout.addWidget(copy_btn)
-        layout.addWidget(self.test_btn)
-        layout.addWidget(self.test_status)
-        layout.addWidget(self.confirm_btn)
-        layout.addWidget(instructions)
-        layout.addStretch(1)
+        main_layout.addLayout(content_layout)
         return w
 
     def _handle_create_user(self) -> None:
@@ -607,15 +690,14 @@ class RegistrationDialog(QtWidgets.QDialog):
         self.test_confirmed = False
 
         safe = _html_escape(name)
-        self.hello_label.setText(f"<h2>Scan to pair {safe}</h2>")
-        self.link_field.setText(link)
+        self.hello_label.setText(f"<h2>Welcome, {safe}</h2>")
         self.test_status.clear()
         self.test_btn.setEnabled(True)
-        self.confirm_btn.setEnabled(False)
         self.finish_btn.setEnabled(False)
 
         self._render_qr()
         self.stack.setCurrentWidget(self.step_qr)
+        self.finish_btn.show()  # Show finish button on QR step
 
     def _render_qr(self) -> None:
         if not self.pairing_link:
@@ -623,15 +705,8 @@ class RegistrationDialog(QtWidgets.QDialog):
         qr_img = qrcode.make(self.pairing_link).convert("RGB")
         qt_img = ImageQt(qr_img)
         pixmap = QtGui.QPixmap.fromImage(QtGui.QImage(qt_img))
-        scaled = pixmap.scaled(280, 280, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
+        scaled = pixmap.scaled(180, 180, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
         self.qr_label.setPixmap(scaled)
-
-    def _copy_link(self) -> None:
-        if not self.pairing_link:
-            return
-        QtWidgets.QApplication.clipboard().setText(self.pairing_link)
-        self.test_status.setText("Link copied. Scan it from your phone if QR is inconvenient.")
-        _apply_property(self.test_status, "variant", "subtle")
 
     def _send_test(self) -> None:
         if not self.user_id:
@@ -650,20 +725,16 @@ class RegistrationDialog(QtWidgets.QDialog):
             self.test_btn.setEnabled(True)
             return
         if result.sent:
-            self.test_status.setText("Test notification sent. Confirm after you see it on your phone.")
+            self.test_status.setText("✅ Test notification sent! Check your phone, then click Finish.")
             _apply_property(self.test_status, "variant", "success")
-            self.confirm_btn.setEnabled(True)
+            # Enable finish button directly
+            self.test_confirmed = True
+            self.finish_btn.setEnabled(True)
         else:
             reason = result.failures[0] if result.failures else "Unknown error"
-            self.test_status.setText(f"No tokens available: {reason}")
+            self.test_status.setText(f"❌ No tokens available: {reason}")
             _apply_property(self.test_status, "variant", "danger")
             self.test_btn.setEnabled(True)
-
-    def _confirm_test(self) -> None:
-        self.test_confirmed = True
-        self.finish_btn.setEnabled(True)
-        self.test_status.setText("Great! Notifications are confirmed.")
-        _apply_property(self.test_status, "variant", "success")
 
 
 class PairingDialog(QtWidgets.QDialog):
@@ -992,7 +1063,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         
         # Hardcoded optimal values
-        threshold = 0.8
+        threshold = 0.7  # Lower threshold for better detection
         debounce_seconds = 4  # 4-second cooldown between notifications (keep alerting user)
         poll_ms = 250
 
@@ -1065,7 +1136,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(float)
     def _on_match_detected(self, score: float) -> None:
-        self._set_tracking_state(True, f"Match detected (score {score:.3f})")
+        self._set_tracking_state(True, "Match detected! Sending notification...")
 
     @QtCore.pyqtSlot(str)
     def _show_status(self, message: str) -> None:
@@ -1120,26 +1191,16 @@ class MainWindow(QtWidgets.QMainWindow):
             margin-top: 6px;
         """)
 
-        # Personal stats in same style as community stats
+        # Personal stats - only Games Found and Last Match
         self.total_match_label = QtWidgets.QLabel(str(self.cfg.get("total_matches", 0)))
         self.total_match_label.setStyleSheet("""
             font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 700;
             color: #4caf50;
         """)
         self.total_match_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         total_match_box = self._make_compact_stat_box(self.total_match_label, "Games Found")
-        
-        self.total_notifications_label = QtWidgets.QLabel("0")
-        self.total_notifications_label.setStyleSheet("""
-            font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            color: #2196F3;
-        """)
-        self.total_notifications_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        notifications_box = self._make_compact_stat_box(self.total_notifications_label, "Notifications Sent")
 
         last_match_text = self._format_last_match()
         if last_match_text == "Never":
@@ -1148,7 +1209,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.last_match_label = QtWidgets.QLabel(last_match_text)
         self.last_match_label.setStyleSheet("""
             font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
             color: #a9b3c7;
         """)
@@ -1159,7 +1220,6 @@ class MainWindow(QtWidgets.QMainWindow):
         personal_row = QtWidgets.QHBoxLayout()
         personal_row.setSpacing(10)
         personal_row.addWidget(total_match_box)
-        personal_row.addWidget(notifications_box)
         personal_row.addWidget(last_match_box)
 
         card_layout.addWidget(activity_heading)
@@ -1205,31 +1265,31 @@ class MainWindow(QtWidgets.QMainWindow):
         self.global_users.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         users_box = self._make_compact_stat_box(self.global_users, "Total Users")
 
-        self.global_sends = QtWidgets.QLabel("0")
-        self.global_sends.setStyleSheet("""
+        self.global_matches = QtWidgets.QLabel("0")
+        self.global_matches.setStyleSheet("""
             font-family: 'Segoe UI', Arial, sans-serif;
             font-size: 14px;
             font-weight: 700;
-            color: #ff6b6b;
+            color: #4caf50;
         """)
-        self.global_sends.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        sends_box = self._make_compact_stat_box(self.global_sends, "Total Matches")
+        self.global_matches.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        matches_box = self._make_compact_stat_box(self.global_matches, "Total Matches")
 
-        self.global_today = QtWidgets.QLabel("0")
-        self.global_today.setStyleSheet("""
+        self.global_notifications = QtWidgets.QLabel("0")
+        self.global_notifications.setStyleSheet("""
             font-family: 'Segoe UI', Arial, sans-serif;
             font-size: 14px;
             font-weight: 700;
-            color: #ff6b6b;
+            color: #2196F3;
         """)
-        self.global_today.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        today_box = self._make_compact_stat_box(self.global_today, "Active Today")
+        self.global_notifications.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        notifications_box = self._make_compact_stat_box(self.global_notifications, "Total Notifications Sent")
 
         stats_row = QtWidgets.QHBoxLayout()
         stats_row.setSpacing(10)
         stats_row.addWidget(users_box)
-        stats_row.addWidget(sends_box)
-        stats_row.addWidget(today_box)
+        stats_row.addWidget(matches_box)
+        stats_row.addWidget(notifications_box)
 
         card_layout.addLayout(header_row)
         card_layout.addLayout(stats_row)
@@ -1276,7 +1336,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def _apply_stats(self, personal, global_stats: GlobalStats) -> None:
         # Update personal stats
         self.total_match_label.setText(str(personal.matches_found))
-        self.total_notifications_label.setText(str(personal.notifications_sent))
         
         # Also update local config to stay in sync
         self.cfg["total_matches"] = personal.matches_found
@@ -1287,8 +1346,8 @@ class MainWindow(QtWidgets.QMainWindow):
         
         # Update global stats  
         self.global_users.setText(str(global_stats.total_users))
-        self.global_sends.setText(str(global_stats.total_sends))
-        self.global_today.setText(str(global_stats.users_today))
+        self.global_matches.setText(str(global_stats.total_matches))
+        self.global_notifications.setText(str(global_stats.total_notifications))
 
     # Feedback tab --------------------------------------------------------
     def _build_feedback_tab(self) -> QtWidgets.QWidget:

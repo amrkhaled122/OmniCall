@@ -37,8 +37,8 @@ class SendResult:
 @dataclass
 class GlobalStats:
     total_users: int
-    total_sends: int
-    users_today: int
+    total_matches: int  # Total games found across all users
+    total_notifications: int  # Total notifications sent across all users
     updated_at: Optional[datetime]
 
 
@@ -225,8 +225,8 @@ def fetch_stats(user_id: str) -> tuple[PersonalStats, GlobalStats]:
     
     global_stats = GlobalStats(
         total_users=global_data.get("totalUsers", 0),
-        total_sends=global_data.get("totalSends", 0),
-        users_today=global_data.get("usersToday", 0),
+        total_matches=global_data.get("totalSends", 0),  # totalSends is actually total matches
+        total_notifications=global_data.get("usersToday", 0),  # usersToday is actually total notifications
         updated_at=updated_at
     )
     

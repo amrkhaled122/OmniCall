@@ -28,8 +28,8 @@ async function incrementStats(updates) {
   
   const payload = {};
   if (updates.users) payload.totalUsers = increment(updates.users);
-  if (updates.sends) payload.totalSends = increment(updates.sends);
-  if (updates.usersToday) payload.usersToday = increment(updates.usersToday);
+  if (updates.matches) payload.totalSends = increment(updates.matches);
+  if (updates.notifications) payload.usersToday = increment(updates.notifications);
   
   payload.updatedAt = admin.firestore.FieldValue.serverTimestamp();
   
@@ -182,8 +182,11 @@ exports.sendNotification = functions.https.onCall(async (request, context) => {
       if (isNewMatch) {
         updates.matchesFound = admin.firestore.FieldValue.increment(1);
         updates.lastDetectorMatchAt = admin.firestore.FieldValue.serverTimestamp();
-        // Update global stats for new matches only
-        await incrementStats({ sends: 1 });
+        // Update global stats: increment matches and notifications
+        await incrementStats({ matches: 1, notifications: successCount });
+      } else {
+        // Re-alert: only increment global notifications, not matches
+        await incrementStats({ notifications: successCount });
       }
       
       await db.collection("users").doc(userId).set(updates, { merge: true });
