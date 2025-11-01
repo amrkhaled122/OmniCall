@@ -8,12 +8,12 @@ OmniCall monitors your PC screen for game matches and sends instant notification
 
 ## ✨ Features
 
-- 🔔 **Instant Push Notifications** - Get alerted on your phone the moment a match is found
-- 🖥️ **Desktop Monitoring** - Runs quietly in the background on Windows
-- 📱 **Progressive Web App** - No mobile app installation required
-- 🔒 **Secure** - Your data stays private with Cloud Functions
-- ⚡ **Fast** - Optimized for low latency notifications
-- 📊 **Statistics** - Track your matches and see community stats
+- 🔔 **Instant Push Notifications** - Get alerted on your phone the moment a match is found.
+- 🖥️ **Desktop Monitoring** - Runs quietly in the background on Windows.
+- 📱 **Progressive Web App** - No mobile app installation required  just add the app to the home screen using the steps you will see below !
+- 🔒 **Secure** - No data is stored from your side , you use an anonymous name to generate a token that is used to send ntofications to your device.
+- ⚡ **Fast** - Optimized for low latency notifications.
+- 📊 **Statistics** - Track your matches and see community stats.
 
 ---
 
@@ -55,28 +55,85 @@ OmniCall monitors your PC screen for game matches and sends instant notification
 
 ## 📱 Setup Guide
 
-### Step 1: Register Your Device
+### Step 1: Download and Install
 
-1. Launch OmniCall on your PC
-2. Click **"Not registered? Click here"**
-3. Enter a **display name** (e.g., "My Gaming PC")
-4. Click **"Generate Pairing Link"**
+1. **Go to [Releases](../../releases)** and download the latest `OmniCall-Setup-v1.0.0.exe`
 
-### Step 2: Pair Your Phone
+2. **Run the installer** - You'll see the following screens:
 
-1. A **QR code** will appear on your PC
-2. Open your **phone camera** and scan the QR code
-   - *Or manually visit the displayed URL*
-3. On your phone, click **"Allow Notifications"**
-4. Click **"Pair Device"**
+   ![Installer Step 1](screenshots/Installer_1.png)
+   *License agreement - Read and accept to proceed*
 
-✅ **You're all set!** Your phone is now paired.
+   ![Installer Step 2](screenshots/Installer_2.png)
+   *Select additional tasks (Desktop shortcut, etc.)*
 
-### Step 3: Test Notifications
+   ![Installer Step 3](screenshots/Installer_3.png)
+   *Press install*
 
-1. Go to the **Feedback** tab
-2. Click **"Send Test Notification"**
-3. Check your phone for the notification
+   ![Installer Step 4](screenshots/Installer_4.png)
+   *Wait for the installer to finish*
+
+   ![Installer Step 5](screenshots/Installer_5.png)
+   *Installation complete - Launch OmniCall*
+
+---
+
+### Step 2: Register Your Device
+
+1. **Launch OmniCall** - You'll see the registration screen:
+
+   ![Launch Screen 1 - Register](screenshots/Launch_1.png)
+   *Enter a friendly device name (e.g., "Nevermore's Laptop", "Gaming PC")*
+
+2. **Generate Pairing QR** - After entering your name, click the button:
+
+   ![Launch Screen 2 - Generate](screenshots/Launch_2.png)
+   *Click "Generate Pairing QR" to create your unique pairing code*
+
+---
+
+### Step 3: Pair Your Phone
+
+1. **Scan the QR Code** - The setup screen appears with QR and instructions:
+
+   ![Launch Screen 3 - QR Code](screenshots/Launch_3.png)
+   *Scan this QR code with your phone camera*
+
+2. **Install PWA on Your Phone** - Watch this quick setup guide:
+
+   <div align="center">
+   
+   
+   https://github.com/user-attachments/assets/1ad8c082-f9be-478e-81c7-4422e4079dc6
+   
+   *📱 1-minute video showing iPhone and Android PWA installation*
+   
+   </div>
+
+   **Or follow these steps manually:**
+
+   **For iPhone:**
+   - Scan QR → Opens in Safari
+   - Tap Share button (⬆️) → "Add to Home Screen"
+   - Tap "Add" → Open from home screen
+   - Tap "Enable Notifications" in the PWA
+
+   **For Android:**
+   - Scan QR → Opens in Chrome
+   - Tap menu (⋮) → "Install app"
+   - Tap "Install" → Open from home screen
+   - Tap "Enable Notifications" in the PWA
+
+3. **Send Test Notification** - Back on your PC, click "Send Test Notification":
+
+   ![Launch Screen 4 - Success](screenshots/Launch_4.png)
+   *✅ Confirmation screen - Your phone is now paired!*
+
+---
+
+### Step 4: You're Ready!
+
+Your desktop app and phone are now connected. You'll receive instant notifications when matches are found.
 
 ---
 
@@ -103,97 +160,80 @@ OmniCall monitors your PC screen for game matches and sends instant notification
 
 ---
 
-## 📊 Features Overview
+## 📊 App Features
 
-### 🎮 Tracking Tab
-- **Toggle tracking ON/OFF**
-- **Send test notifications**
-- **Show pairing QR code**
-- **View connection status**
+### 🎮 Tracking Tab - Initial State
+
+![Tracking Tab - OFF](screenshots/App_Tab_2.png)
+
+When you first launch OmniCall, tracking is **OFF** (red button):
+- **Complete registration** - Ensure you've paired your phone first
+- **Send Test** - Verify notifications work before starting tracking
+- **Show Pairing QR** - Add more phones or re-pair if needed
+- **Status indicator** - Shows "Tracking idle" when not monitoring
+
+*Ready to start? Click the toggle button to turn tracking ON!*
+
+---
+
+### 🎮 Tracking Tab - Active Monitoring
+
+![Tracking Tab - ON](screenshots/App_Tab_1.png)
+
+Once you enable tracking, the button turns **ON** (green):
+- **Active monitoring** - Screen is scanned every 250ms for matches
+- **Real-time status** - Shows "Detector running" or "Match detected!"
+- **Instant notifications** - Phone alerts you the moment a match is found
+- **Keyboard shortcuts** - Use `Ctrl+T` or `F8` to quickly toggle
+
+*Keep this running in the background while you queue for games!*
+
+---
 
 ### 📈 Statistics Tab
-- **Your Activity**: Matches found, last match time
-- **Community Stats**: Total users, notifications sent today
-- **Refresh button** to update stats
+
+![Statistics Tab](screenshots/App_Tab_3.png)
+
+View your gaming activity and community stats:
+
+**Your Activity:**
+- **Games Found** - Total matches detected on your PC
+- **Last Match** - Timestamp of your most recent match
+
+**Community Stats:**
+- **Total Users** - Active OmniCall users worldwide
+- **Total Matches** - All matches found by the community
+- **Total Notifications Sent** - Cumulative notifications delivered
+
+*Click "Refresh" to update stats in real-time*
+
+---
 
 ### 💬 Feedback Tab
-- **Send feedback** to the developer
-- **Test notifications** anytime
-- **Word counter** (max 2000 characters)
+
+![Feedback Tab](screenshots/App_Tab_4.png)
+
+Share your thoughts directly with the developer:
+- **Feedback text area** - Report bugs, suggest features, or share your wins
+- **Word counter** - Track your message length (max 2000 words)
+- **Submit button** - Send feedback instantly to the creator
+- **Test notifications** - Verify your phone connection anytime
+
+*Your feedback helps improve OmniCall for everyone!*
+
+---
 
 ### 🛠️ Support Tab
-- **Donation options** (PayPal, Binance)
-- **Contact information**
-- **Support the project**
 
----
+![Support Tab](screenshots/App_Tab_5.png)
 
-## ⚙️ Configuration
+Support the project and keep development going:
+- **Donation options** - PayPal and Binance details
+- **Contact information** - Easy-to-copy email and IDs
+- **Visual guide** - Clear instructions for sending contributions
+- **Thank you message** - Every bit helps maintain and improve OmniCall
 
-The app stores configuration in:
-```
-%APPDATA%/OmniCall/config.json
-```
-
-**Config fields:**
-- `user_id` - Your unique device ID
-- `display_name` - Your device name
-- `total_matches` - Total matches detected
-- `last_match` - Timestamp of last match
-
-*Note: Do not manually edit this file unless you know what you're doing!*
-
----
-
-## 🔧 Troubleshooting
-
-### ❌ "No notifications received"
-
-**Check:**
-1. Phone is paired (go to Tracking tab → click "Show Pairing QR")
-2. Test notification works (Feedback tab → "Send Test Notification")
-3. Phone browser allows notifications
-4. Internet connection is active
-
-**Fix:**
-- Re-pair your phone by scanning the QR code again
-
----
-
-### ❌ "App won't start"
-
-**Check:**
-1. Windows 10/11 (64-bit)
-2. No antivirus blocking the app
-3. Run as Administrator (right-click → "Run as administrator")
-
-**Fix:**
-- Download the latest release
-- Check Windows Event Viewer for errors
-
----
-
-### ❌ "Tracking button doesn't work"
-
-**Check:**
-1. You're registered (not in "Not registered" mode)
-2. Template image `Accept.png` exists in app folder
-
-**Fix:**
-- Restart the app
-- Re-register if needed
-
----
-
-### ❌ "Statistics not loading"
-
-**Check:**
-1. Internet connection
-2. Not blocked by firewall
-
-**Fix:**
-- Click "Refresh" button in Statistics tab
-- Restart the app
+*If OmniCall helps you never miss a match, consider supporting! ❤️*
 
 ---
 
@@ -265,22 +305,14 @@ firebase functions:log
 
 ## 🔒 Privacy & Security
 
-- ✅ **No service account** bundled in the app
-- ✅ **Secure Cloud Functions** handle all Firebase operations
-- ✅ **No personal data** collected beyond device pairing
-- ✅ **Open source** - review the code yourself
+-  **No personal data** collected beyond device pairing and statiscts shown in the app itself. 
+-  **Open source** - review the code yourself
 
 **What we store:**
 - Device ID (random, anonymous)
 - Display name (you choose)
 - FCM tokens (for notifications)
 - Match statistics (count only)
-
-**What we DON'T store:**
-- Screenshots
-- Game usernames
-- Personal information
-- Credit card details
 
 ---
 
@@ -306,8 +338,8 @@ Contributions are welcome! Please:
 
 If you find OmniCall useful, consider supporting development:
 
-**PayPal**: [Your PayPal Link]  
-**Binance**: [Your Binance Address]
+- **PayPal**:  amrkhaled122@aucegypt.edu
+- **Binance**: amrkhaled272@gmail.com
 
 ---
 
@@ -330,7 +362,7 @@ If you find OmniCall useful, consider supporting development:
 
 ## ⚠️ Disclaimer
 
-This tool is for **personal use only**. Use responsibly and in accordance with the Terms of Service of any games you play. The developers are not responsible for any consequences of using this software.
+This tool is for **personal use only**. Use responsibly and in accordance with the Terms of Service of any games you play. The developer is not responsible for any consequences of using this software.
 
 ---
 
