@@ -47,12 +47,10 @@ Name: "quicklaunchicon"; Description: "Pin to Taskbar"; GroupDescription: "{cm:A
 [Files]
 ; Main executable
 Source: "dist\OmniCall\OmniCall.exe"; DestDir: "{app}"; Flags: ignoreversion
-; Internal folder (hidden from user)
+; Internal folder (hidden from user) - includes Accept.png and all dependencies
 Source: "dist\OmniCall\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
-; Template image
-Source: "dist\OmniCall\Accept.png"; DestDir: "{app}"; Flags: ignoreversion
 ; Documentation
-Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion isreadme
+Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]

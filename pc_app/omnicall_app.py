@@ -570,7 +570,7 @@ class RegistrationDialog(QtWidgets.QDialog):
         _apply_property(subtitle, "variant", "subtle")
 
         self.name_input = QtWidgets.QLineEdit()
-        self.name_input.setPlaceholderText("e.g., Khaled's PC")
+        self.name_input.setPlaceholderText("e.g., Nevermore's Laptop")
 
         self.error_label = QtWidgets.QLabel()
         _apply_property(self.error_label, "variant", "danger")
