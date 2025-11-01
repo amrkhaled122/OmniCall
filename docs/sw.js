@@ -1,4 +1,4 @@
-const CACHE_NAME = 'omnicall-v1';
+const CACHE_NAME = 'omnicall-v2';
 const STATIC_CACHE = [
    './',
    './index.html',
