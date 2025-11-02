@@ -26,31 +26,6 @@ OmniCall monitors your PC screen for game matches and sends instant notification
 - **Modern smartphone** with web browser
 - **Internet connection**
 
-### Option 1: Download Pre-built App (Easiest)
-
-1. **Download** the latest release from [Releases](../../releases)
-2. **Extract** the ZIP file
-3. **Run** `OmniCall.exe`
-4. **Register** and pair your phone (see Setup Guide below)
-
-### Option 2: Run from Source
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/amrkhaled122/OmniCall.git
-   cd OmniCall
-   ```
-
-2. **Install dependencies**
-   ```bash
-   pip install -r pc_app/requirements.txt
-   ```
-
-3. **Run the app**
-   ```bash
-   python pc_app/omnicall_app.py
-   ```
-
 ---
 
 ## 📱 Setup Guide
@@ -59,7 +34,17 @@ OmniCall monitors your PC screen for game matches and sends instant notification
 
 1. **Go to [Releases](../../releases)** and download the latest `OmniCall-Setup-v1.0.0.exe`
 
-2. **Run the installer** - You'll see the following screens:
+2. **Windows SmartScreen Warning** - When you first run the installer, Windows will show a security warning:
+
+   ![Windows Warning 1](screenshots/Windows_1.png)
+   *Click "More info" to proceed*
+
+   ![Windows Warning 2](screenshots/Windows_2.png)
+   *Click "Run anyway" to start installation*
+
+   > **Why this happens:** OmniCall is a standalone developed open-source app from me (the developer) without an expensive code signing certificate ($200+/year). Your PC is safe - this warning appears for all new unsigned apps.
+
+3. **Run the installer** - After bypassing the warning, you'll see the installation screens:
 
    ![Installer Step 1](screenshots/Installer_1.png)
    *License agreement - Read and accept to proceed*
@@ -131,9 +116,25 @@ OmniCall monitors your PC screen for game matches and sends instant notification
 
 ---
 
-### Step 4: You're Ready!
+### Step 4: Configure Dota 2 Settings (Critical!)
 
-Your desktop app and phone are now connected. You'll receive instant notifications when matches are found.
+**Important:** For OmniCall to detect matches, Dota 2 must bring itself to the foreground when a match is found.
+
+![Dota Settings](screenshots/Dota_controls.png)
+
+**Steps:**
+1. Open **Dota 2**
+2. Go to **Settings** (⚙️ icon)
+3. Navigate to the **"Window Focus"** tab
+4. **Enable** the checkbox: **"Bring Dota to the foreground when match found"**d
+
+> **Why this is critical:** OmniCall monitors your screen for the match acceptance popup. If Dota doesn't come to the foreground, the app won't be able to detect the match and send you a notification.
+
+---
+
+### Step 5: You're Ready!
+
+Your desktop app and phone are now connected. You'll receive instant notifications when matches are found and the app is running in the background.
 
 ---
 
@@ -148,7 +149,7 @@ Your desktop app and phone are now connected. You'll receive instant notificatio
 
 ### What Happens Next
 
-- OmniCall monitors your screen every 250ms
+- OmniCall monitors your screen to captrhe the Accept button.
 - When a match is detected, it sends a notification to your phone
 - You'll get a push notification instantly
 - Click the notification to see details
@@ -181,10 +182,8 @@ When you first launch OmniCall, tracking is **OFF** (red button):
 ![Tracking Tab - ON](screenshots/App_Tab_1.png)
 
 Once you enable tracking, the button turns **ON** (green):
-- **Active monitoring** - Screen is scanned every 250ms for matches
 - **Real-time status** - Shows "Detector running" or "Match detected!"
 - **Instant notifications** - Phone alerts you the moment a match is found
-- **Keyboard shortcuts** - Use `Ctrl+T` or `F8` to quickly toggle
 
 *Keep this running in the background while you queue for games!*
 
@@ -217,9 +216,6 @@ Share your thoughts directly with the developer:
 - **Feedback text area** - Report bugs, suggest features, or share your wins
 - **Word counter** - Track your message length (max 2000 words)
 - **Submit button** - Send feedback instantly to the creator
-- **Test notifications** - Verify your phone connection anytime
-
-*Your feedback helps improve OmniCall for everyone!*
 
 ---
 
@@ -227,38 +223,12 @@ Share your thoughts directly with the developer:
 
 ![Support Tab](screenshots/App_Tab_5.png)
 
-Support the project and keep development going:
-- **Donation options** - PayPal and Binance details
-- **Contact information** - Easy-to-copy email and IDs
-- **Visual guide** - Clear instructions for sending contributions
-- **Thank you message** - Every bit helps maintain and improve OmniCall
+Support the project and keep development going if you wish !!
 
-*If OmniCall helps you never miss a match, consider supporting! ❤️*
 
 ---
 
-## 🏗️ For Developers
-
-### Project Structure
-
-```
-OmniCall/
-├── pc_app/                 # Desktop application
-│   ├── omnicall_app.py     # Main GUI (PyQt6)
-│   ├── firebase_client.py  # Cloud Functions client
-│   ├── detector.py         # Screen monitoring
-│   ├── config.py           # Config management
-│   └── requirements.txt    # Python dependencies
-├── functions/              # Firebase Cloud Functions
-│   ├── index.js            # Backend API
-│   └── package.json        # Node dependencies
-├── docs/                   # PWA (Progressive Web App)
-│   ├── index.html          # PWA UI
-│   ├── app.js              # PWA logic
-│   ├── sw.js               # Service worker
-│   └── manifest.json       # PWA manifest
-└── Accept.png              # Template image for detection
-```
+##  For Developers
 
 ### Tech Stack
 
@@ -303,7 +273,7 @@ firebase functions:log
 
 ---
 
-## 🔒 Privacy & Security
+##  Privacy & Security
 
 -  **No personal data** collected beyond device pairing and statiscts shown in the app itself. 
 -  **Open source** - review the code yourself
@@ -316,13 +286,13 @@ firebase functions:log
 
 ---
 
-## 📜 License
+##  License
 
 This project is licensed under the **MIT License** - see [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions are welcome! Please:
 
@@ -334,38 +304,15 @@ Contributions are welcome! Please:
 
 ---
 
-## 💖 Support the Project
-
-If you find OmniCall useful, consider supporting development:
-
-- **PayPal**:  amrkhaled122@aucegypt.edu
-- **Binance**: amrkhaled272@gmail.com
-
----
-
-## 📞 Contact & Support
+##  Contact & Support
 
 - **GitHub Issues**: [Report bugs or request features](../../issues)
 - **Email**: amrkhaled122@aucegypt.edu
 - **Website**: [https://amrkhaled122.github.io/OmniCall/](https://amrkhaled122.github.io/OmniCall/)
-
----
-
-## 🙏 Acknowledgments
-
-- Firebase for Cloud Functions and FCM
-- PyQt6 for the GUI framework
-- OpenCV for screen detection
-- The gaming community for inspiration
-
----
 
 ## ⚠️ Disclaimer
 
 This tool is for **personal use only**. Use responsibly and in accordance with the Terms of Service of any games you play. The developer is not responsible for any consequences of using this software.
 
 ---
-
-**Made with ❤️ by Amr Khaled**
-
 *Star ⭐ this repo if you find it useful!*
